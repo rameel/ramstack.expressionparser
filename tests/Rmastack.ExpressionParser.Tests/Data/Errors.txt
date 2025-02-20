@@ -1,0 +1,86 @@
+UnknownType
+Cannot resolve symbol 'UnknownType'.
+
+Guid
+'Guid' is a type, which is not valid in the given context.
+
+(Guid).Empty
+'Guid' is a type, which is not valid in the given context.
+
+Guid.Value
+Cannot resolve symbol 'Value'.
+
+string.Empty:text
+Cannot resolve symbol 'text'.
+
+single.10:text
+Identifier expected (expression: 10).
+
+float."10":text
+Identifier expected (expression: "10").
+
+int.true:text
+(1:4) Expected '(', '[', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+
+double.false:text
+(1:7) Expected '(', '[', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+
+Math.int:text
+Cannot resolve symbol 'int'.
+
+byte(20)
+Non-invocable member 'byte' cannot be used like a method.
+
+short.maxvalue(10)
+Non-invocable member 'maxvalue' cannot be used like a method.
+
+1 + (2 * 3
+(1:11) Expected '(', '[', '.', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or ')'
+
+1 + 2 * 3(
+(1:11) Expected ')'
+
+1 + 2 * 3(2)
+Method name expected (expression: 3).
+
+1 + 2 * 3[2]
+Cannot apply indexing with [] to an expression of type 'System.Int32'.
+
+1 + 2 * 3[
+(1:11) Expected ']'
+
+1 + 2 * 3]
+(1:10) Expected '(', '[', '.', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+
+1 // 2 * 3
+(1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+1 + 2 ** 3
+(1:8) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+* 1
+(1:1) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+/ 1
+(1:1) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+1 *
+(1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+1 +
+(1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+1 -
+(1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+1 /
+(1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+0xp
+(1:2) Expected '(', '[', '.', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+
+"test"[]
+Ambiguous match found:\n    Char Chars [Int32] (in System.String)
+
+"test"["a"]
+Ambiguous match found:\n    Char Chars [Int32] (in System.String)

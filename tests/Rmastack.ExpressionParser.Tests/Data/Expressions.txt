@@ -1,0 +1,197 @@
+1:byte + 2:byte
+(Convert(Convert(1, Byte), Int32) + Convert(Convert(2, Byte), Int32))
+
+1:short + 2
+(Convert(Convert(1, Int16), Int32) + 2)
+
+1 + 2:short
+(1 + Convert(Convert(2, Int16), Int32))
+
+-1:sbyte
+-Convert(Convert(1, SByte), Int32)
+
+-2147483648
+-2147483648
+
+-0x80000000
+-2147483648
+
+-9223372036854775808
+-9223372036854775808
+
+-0x8000000000000000
+-9223372036854775808
+
+-5000 >>> 4
+Convert((Convert(-5000, UInt32) >> 4), Int32)
+
+5000u >>> 4
+(5000 >> 4)
+
+5000 >>> 4
+Convert((Convert(5000, UInt32) >> 4), Int32)
+
+-9223372036854775808 >>> 4
+Convert((Convert(-9223372036854775808, UInt64) >> 4), Int64)
+
+5000 >> 4
+(5000 >> 4)
+
+1:byte << 4
+(Convert(Convert(1, Byte), Int32) << 4)
+
+byte.MaxValue + 1
+(Convert(Byte.MaxValue, Int32) + 1)
+
+byte.MaxValue + byte.MinValue
+(Convert(Byte.MaxValue, Int32) + Convert(Byte.MinValue, Int32))
+
+~1:short
+~(Convert(Convert(1, Int16), Int32))
+
+-100u
+Convert(100, Int64)
+
+null ?? null ?? string.Empty
+(null ?? (null ?? String.Empty))
+
+(null ?? (null ?? string.Empty))
+(null ?? (null ?? String.Empty))
+
+(null ?? (null ?? ""))
+(null ?? (null ?? ""))
+
+1 == 1 ? 2 == 2 ? 3 == 3 ? 4 == 4 : 5 == 5 : 6 == 6 : 7 == 7
+IIF((1 == 1), IIF((2 == 2), IIF((3 == 3), (4 == 4), (5 == 5)), (6 == 6)), (7 == 7))
+
+1 + 2 * 3
+(1 + (2 * 3))
+
+1 * 2 + 3
+((1 * 2) + 3)
+
+Math.PI * 2 + 1
+((Math.PI * Convert(2, Double)) + Convert(1, Double))
+
+Math.PI:float * 2 + 1
+((Convert(Math.PI, Single) * Convert(2, Single)) + Convert(1, Single))
+
+2.93E5f + 2.17d
+(Convert(293000, Double) + 2.17)
+
+2.93E5f + 2.17d + 1ul
+((Convert(293000, Double) + 2.17) + Convert(1, Double))
+
+18446744073709551615 + 1u
+(18446744073709551615 + Convert(1, UInt64))
+
+-9223372036854775808 - 1
+(-9223372036854775808 - Convert(1, Int64))
+
+9223372036854775807 - 1
+(9223372036854775807 - Convert(1, Int64))
+
+0u - 9223372036854775808
+(Convert(0, UInt64) - 9223372036854775808)
+
+1m + 2
+(1 + Convert(2, Decimal))
+
+1+2+3+4
+(((1 + 2) + 3) + 4)
+
+1d+2d
+(1 + 2)
+
+1.2d+2.2d
+(1.2 + 2.2)
+
+2u-1u*3u
+(2 - (1 * 3))
+
+2lu-1lu*3lu
+(2 - (1 * 3))
+
+2l-1l*3l
+(2 - (1 * 3))
+
+2ul-1ul*3ul
+(2 - (1 * 3))
+
+"test"[0]
+"test".get_Chars(0)
+
+"test"[1 != 0 ? 0 : 1]
+"test".get_Chars(IIF((1 != 0), 0, 1))
+
+math.min(1, 2)
+Min(1, 2)
+
+min(1, max(3, 4))
+Min(1, Max(3, 4))
+
+100.tostring().tochararray()[0]
+100.ToString().ToCharArray()[0]
+
+100.tostring().tochararray()[0].ToString().Length
+100.ToString().ToCharArray()[0].ToString().Length
+
+100.tostring("D").Length
+100.ToString("D").Length
+
+Guid.Newguid().ToString().Length > 0
+(NewGuid().ToString().Length > 0)
+
+"test".substring(1)
+"test".Substring(1)
+
+"test".substring(1, 3)
+"test".Substring(1, 3)
+
+"test".substring(1, 3).ToUpper().ToLowerInvariant()
+"test".Substring(1, 3).ToUpper().ToLowerInvariant()
+
+object.equals(1, 1)
+Equals(Convert(1, Object), Convert(1, Object))
+
+object.referenceEquals(1, 1)
+ReferenceEquals(Convert(1, Object), Convert(1, Object))
+
+DateTime.Today
+DateTime.Today
+
+DateTimeOffset.UnixEpoch
+DateTimeOffset.UnixEpoch
+
+DateTime.Parse(DateTime.Now.ToString())
+Parse(DateTime.Now.ToString())
+
+"test\u0020test"
+"test test"
+
+(1 | 2 | 3 | 4) & 0xE
+((((1 | 2) | 3) | 4) & 14)
+
+(10 == 10 || 20 == 20) ? (1 > 0 ? 10 : 20) : (0 < 1 ? 30 : 40)
+IIF(((10 == 10) OrElse (20 == 20)), IIF((1 > 0), 10, 20), IIF((0 < 1), 30, 40))
+
+0b11110000111100001111
+986895
+
+"01234:56789".split(':', None)
+"01234:56789".Split(:, StringSplitOptions.None)
+
+"01234:56789".split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.None)
+"01234:56789".Split(:, Convert((Convert(StringSplitOptions.RemoveEmptyEntries, Int32) | Convert(StringSplitOptions.None, Int32)), StringSplitOptions))
+
+StringSplitOptions.None & ~StringSplitOptions.RemoveEmptyEntries
+Convert((Convert(StringSplitOptions.None, Int32) & Convert(Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions), Int32)), StringSplitOptions)
+
+~StringSplitOptions.RemoveEmptyEntries
+Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions)
+
+1 ^ 1
+(1 ^ 1)
+
+true ^ false
+(True ^ False)

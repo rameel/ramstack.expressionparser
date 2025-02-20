@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.35806.103
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".root", ".root", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ramstack.ExpressionParser", "src\Ramstack.ExpressionParser\Ramstack.ExpressionParser.csproj", "{7866E867-7E25-1EE9-245D-E1DC9EA701B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ramstack.ExpressionParser.Tests", "tests\Rmastack.ExpressionParser.Tests\Ramstack.ExpressionParser.Tests.csproj", "{0DCB3293-053C-4A79-BD06-CD6872911886}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7866E867-7E25-1EE9-245D-E1DC9EA701B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7866E867-7E25-1EE9-245D-E1DC9EA701B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7866E867-7E25-1EE9-245D-E1DC9EA701B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7866E867-7E25-1EE9-245D-E1DC9EA701B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DCB3293-053C-4A79-BD06-CD6872911886}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DCB3293-053C-4A79-BD06-CD6872911886}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DCB3293-053C-4A79-BD06-CD6872911886}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DCB3293-053C-4A79-BD06-CD6872911886}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {52EB8838-9A24-4543-99E9-9CE702252080}
+	EndGlobalSection
+EndGlobal
