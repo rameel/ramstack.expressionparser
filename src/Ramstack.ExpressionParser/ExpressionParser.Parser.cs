@@ -187,57 +187,57 @@ partial class ExpressionParser
 
         var mul_expression =
             prefix_expression.Fold(
-                OneOf("*/%").ThenIgnore(S).Map(CreateIdentifier),
+                OneOf("*/%").ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var add_expression =
             mul_expression.Fold(
-                OneOf("+-").ThenIgnore(S).Map(CreateIdentifier),
+                OneOf("+-").ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var shift_expression =
             add_expression.Fold(
-                OneOf(["<<", ">>", ">>>"]).ThenIgnore(S).Map(CreateIdentifier),
+                OneOf(["<<", ">>", ">>>"]).ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var relational_expression =
             shift_expression.Fold(
-                OneOf(["<", ">", "<=", ">="]).ThenIgnore(S).Map(CreateIdentifier),
+                OneOf(["<", ">", "<=", ">="]).ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var equality_expression =
             relational_expression.Fold(
-                OneOf("==", "!=").ThenIgnore(S).Map(CreateIdentifier),
+                OneOf("==", "!=").ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var bitwise_and_expression =
             equality_expression.Fold(
-                L('&').ThenIgnore(S).Map(CreateIdentifier),
+                L('&').ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var bitwise_xor_expression =
             bitwise_and_expression.Fold(
-                L('^').ThenIgnore(S).Map(CreateIdentifier),
+                L('^').ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var bitwise_or_expression =
             bitwise_xor_expression.Fold(
-                L('|').ThenIgnore(S).Map(CreateIdentifier),
+                L('|').ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var logical_and_expression =
             bitwise_or_expression.Fold(
-                L("&&").ThenIgnore(S).Map(CreateIdentifier),
+                L("&&").ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var logical_or_expression =
             logical_and_expression.Fold(
-                L("||").ThenIgnore(S).Map(CreateIdentifier),
+                L("||").ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var null_coalesce_expression =
             logical_or_expression.FoldR(
-                L("??").ThenIgnore(S).Map(CreateIdentifier),
+                L("??").ThenIgnore(S).Do(CreateIdentifier),
                 (lhs, rhs, op) => new Expr.Binary(op, lhs, rhs));
 
         var conditional_expression = Deferred<Expr>();
@@ -261,9 +261,9 @@ partial class ExpressionParser
         return S.Then(expression);
     }
 
-    private static Identifier CreateIdentifier(Match m, string v) =>
+    private static Identifier CreateIdentifier(string v) =>
         new(v);
 
-    private static Identifier CreateIdentifier(Match m, char v) =>
+    private static Identifier CreateIdentifier(char v) =>
         new(new string(v, 1));
 }
