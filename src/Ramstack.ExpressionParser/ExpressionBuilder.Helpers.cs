@@ -117,10 +117,8 @@ partial class ExpressionBuilder
         if (enumUnderlyingType is not null)
         {
             if (lhs.Type != rhs.Type)
-            {
                 if (lhs.Type.IsEnum ? enumUnderlyingType != rhs.Type : enumUnderlyingType != lhs.Type)
                     Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-            }
 
             if (lhs.Type.IsEnum)
                 lhs = Expression.Convert(lhs, enumUnderlyingType);

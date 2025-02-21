@@ -84,3 +84,6 @@ Ambiguous match found:\n    Char Chars [Int32] (in System.String)
 
 "test"["a"]
 Ambiguous match found:\n    Char Chars [Int32] (in System.String)
+
+StringSplitOptions.None | StringComparison.Ordinal
+Operator '|' cannot be applied to operands of type 'System.StringSplitOptions' and 'System.StringComparison'.

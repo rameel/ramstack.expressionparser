@@ -187,6 +187,9 @@ IIF(((10 == 10) OrElse (20 == 20)), IIF((1 > 0), 10, 20), IIF((0 < 1), 30, 40))
 StringSplitOptions.None & ~StringSplitOptions.RemoveEmptyEntries
 Convert((Convert(StringSplitOptions.None, Int32) & Convert(Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions), Int32)), StringSplitOptions)
 
+StringSplitOptions.None | StringSplitOptions.RemoveEmptyEntries
+Convert((Convert(StringSplitOptions.None, Int32) | Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions)
+
 ~StringSplitOptions.RemoveEmptyEntries
 Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions)
 
