@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".root", ".root", "{02EA681E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ramstack.ExpressionParser", "src\Ramstack.ExpressionParser\Ramstack.ExpressionParser.csproj", "{7866E867-7E25-1EE9-245D-E1DC9EA701B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ramstack.ExpressionParser.Tests", "tests\Rmastack.ExpressionParser.Tests\Ramstack.ExpressionParser.Tests.csproj", "{0DCB3293-053C-4A79-BD06-CD6872911886}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ramstack.ExpressionParser.Tests", "tests\Ramstack.ExpressionParser.Tests\Ramstack.ExpressionParser.Tests.csproj", "{0DCB3293-053C-4A79-BD06-CD6872911886}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
