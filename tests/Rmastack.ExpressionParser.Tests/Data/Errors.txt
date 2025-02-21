@@ -87,3 +87,46 @@ Ambiguous match found:\n    Char Chars [Int32] (in System.String)
 
 StringSplitOptions.None | StringComparison.Ordinal
 Operator '|' cannot be applied to operands of type 'System.StringSplitOptions' and 'System.StringComparison'.
+
+#######################################
+###### Binary Numeric Promotions ######
+#######################################
+
+#######################################
+# If either operand is of type decimal, a binding-time error occurs
+# if the other operand is of type float or double.
+
+1.0 + 2.0m
+Operator '+' cannot be applied to operands of type 'System.Double' and 'System.Decimal'.
+
+1.0m + 2.0d
+Operator '+' cannot be applied to operands of type 'System.Decimal' and 'System.Double'.
+
+1.0f + 2.0m
+Operator '+' cannot be applied to operands of type 'System.Single' and 'System.Decimal'.
+
+1.0m + 2.0f
+Operator '+' cannot be applied to operands of type 'System.Decimal' and 'System.Single'.
+
+#######################################
+# If either operand is of type ulong, a binding-time error occurs
+# if the other operand is of type sbyte, short, int, or long.
+
+1ul + 2:sbyte
+Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.SByte'.
+
+1ul + 2:short
+Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.Int16'.
+
+1ul + 2:int
+Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.Int32'.
+
+1ul + 2:long
+Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.Int64'.
+
+#######################################
+###### Unary Numeric Promotions  ######
+#######################################
+
+-1ul
+Unary operator '-' cannot be applied to operand of type 'System.UInt64'.

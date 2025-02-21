@@ -42,7 +42,8 @@ partial class ExpressionParser
             ).Void();
 
         var number_literal =
-            ConstantNumberParser.NumericLiteral
+            ConstantNumberParser
+                .NumericLiteral
                 .Do(Expr (v) => new Expr.Literal(v));
 
         var string_literal =
@@ -262,8 +263,8 @@ partial class ExpressionParser
     }
 
     private static Identifier CreateIdentifier(string v) =>
-        new(v);
+        new Identifier(v);
 
     private static Identifier CreateIdentifier(char v) =>
-        new(new string(v, 1));
+        new Identifier(v.ToString());
 }

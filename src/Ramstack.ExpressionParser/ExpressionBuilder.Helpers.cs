@@ -186,12 +186,28 @@ partial class ExpressionBuilder
         return result;
     }
 
-    //
-    // 12.4.7 Numeric promotions
-    // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#1247-numeric-promotions
-    //
     private static void ApplyBinaryNumericPromotions(Identifier op, ref Expression lhs, ref Expression rhs)
     {
+        //
+        // 12.4.7.3 Binary numeric promotions
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12473-binary-numeric-promotions
+        //
+        // Binary numeric promotion implicitly converts both operands to a common type which,
+        // in case of the non-relational operators, also becomes the result type of the operation.
+        // Binary numeric promotion consists of applying the following rules, in the order they appear here:
+        //
+        // * If either operand is of type decimal, the other operand is converted to type decimal,
+        //   or a binding-time error occurs if the other operand is of type float or double.
+        // * Otherwise, if either operand is of type double, the other operand is converted to type double.
+        // * Otherwise, if either operand is of type float, the other operand is converted to type float.
+        // * Otherwise, if either operand is of type ulong, the other operand is converted to type ulong,
+        //   or a binding-time error occurs if the other operand is of type sbyte, short, int, or long.
+        // * Otherwise, if either operand is of type long, the other operand is converted to type long.
+        // * Otherwise, if either operand is of type uint and the other operand is of type sbyte, short, or int,
+        //   both operands are converted to type long.
+        // * Otherwise, if either operand is of type uint, the other operand is converted to type uint.
+        // * Otherwise, both operands are converted to type int.
+
         var lhsType = lhs.Type;
         var rhsType = rhs.Type;
 
@@ -221,8 +237,10 @@ partial class ExpressionBuilder
 
             if (conversionType == typeof(decimal))
             {
+                //
                 // If either operand is of type decimal, the other operand is converted to type decimal,
                 // or a compile-time error occurs if the other operand is of type float or double.
+                //
                 if (lhsType == typeof(double)
                     || lhsType == typeof(float)
                     || rhsType == typeof(double)
@@ -231,8 +249,10 @@ partial class ExpressionBuilder
             }
             else if (conversionType == typeof(ulong))
             {
-                // if either operand is of type ulong, the other operand is converted to type ulong,
+                //
+                // If either operand is of type ulong, the other operand is converted to type ulong,
                 // or a compile-time error occurs if the other operand is of type sbyte, short, int, or long.
+                //
                 if (lhsType == typeof(sbyte)
                     || lhsType == typeof(short)
                     || lhsType == typeof(int)
@@ -245,8 +265,10 @@ partial class ExpressionBuilder
             }
             else if (conversionType == typeof(uint))
             {
-                // if either operand is of type uint and the other operand is of type sbyte, short, or int,
+                //
+                // If either operand is of type uint and the other operand is of type sbyte, short, or int,
                 // both operands are converted to type long.
+                //
                 if (lhsType == typeof(sbyte)
                     || lhsType == typeof(short)
                     || lhsType == typeof(int)
