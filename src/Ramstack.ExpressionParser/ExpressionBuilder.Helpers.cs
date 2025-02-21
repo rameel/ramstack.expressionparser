@@ -288,25 +288,25 @@ partial class ExpressionBuilder
         }
     }
 
-    private static Func<Expression, Expression, Expression> CreateOperatorFactory(string @operator)
+    private static Func<Expression, Expression, Expression> ResolveBinaryOperatorFactory(string @operator)
     {
         return @operator switch
         {
             "??" => Expression.Coalesce,
-            "||" => Expression.OrElse,
             "&&" => Expression.AndAlso,
-            "|" => Expression.Or,
-            "^" => Expression.ExclusiveOr,
-            "&" => Expression.And,
+            "||" => Expression.OrElse,
             "==" => Expression.Equal,
             "!=" => Expression.NotEqual,
             "<=" => Expression.LessThanOrEqual,
-            "<" => Expression.LessThan,
             ">=" => Expression.GreaterThanOrEqual,
-            ">" => Expression.GreaterThan,
             ">>" => Expression.RightShift,
-            ">>>" => Expression.RightShift,
             "<<" => Expression.LeftShift,
+            ">>>" => Expression.RightShift,
+            "<" => Expression.LessThan,
+            ">" => Expression.GreaterThan,
+            "&" => Expression.And,
+            "|" => Expression.Or,
+            "^" => Expression.ExclusiveOr,
             "+" => Expression.Add,
             "-" => Expression.Subtract,
             "*" => Expression.Multiply,
