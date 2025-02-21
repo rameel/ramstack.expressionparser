@@ -102,7 +102,7 @@ internal sealed class ConstantNumberParser : Parser<object>
 
                 //
                 // Check for overflow
-                // 
+                //
                 if (r > ulong.MaxValue / 10
                     || (r == ulong.MaxValue / 10 && d > ulong.MaxValue % 10))
                     goto FAIL;
@@ -143,7 +143,7 @@ internal sealed class ConstantNumberParser : Parser<object>
 
                 //
                 // Check for overflow
-                // 
+                //
                 if (r > ulong.MaxValue / 16)
                     goto FAIL;
 
@@ -181,7 +181,7 @@ internal sealed class ConstantNumberParser : Parser<object>
 
                 //
                 // Check for overflow
-                // 
+                //
                 if (r > ulong.MaxValue >> 1)
                     goto FAIL;
 
@@ -344,7 +344,7 @@ internal sealed class ConstantNumberParser : Parser<object>
         // 6.4.5.3 Integer literals
         //
         // The type of an integer literal is determined as follows:
-        // 
+        //
         // * If the literal has no suffix, it has the first of these types in which its value can be represented: int, uint, long, ulong.
         // * If the literal is suffixed by U or u, it has the first of these types in which its value can be represented: uint, ulong.
         // * If the literal is suffixed by L or l, it has the first of these types in which its value can be represented: long, ulong.

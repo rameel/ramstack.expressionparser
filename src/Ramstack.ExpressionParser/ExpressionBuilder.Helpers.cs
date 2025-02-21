@@ -71,9 +71,14 @@ partial class ExpressionBuilder
                 var paramArrayType = parameter.ParameterType.GetElementType()!;
 
                 for (; i < args.Count; i++)
-                    paramArray.Add(Convert(args[i], paramArrayType));
+                    paramArray.Add(
+                        Convert(args[i], paramArrayType));
 
-                list.Add(Expression.NewArrayInit(paramArrayType, paramArray));
+                list.Add(
+                    Expression.NewArrayInit(
+                        paramArrayType,
+                        paramArray));
+
                 break;
             }
 
@@ -128,35 +133,35 @@ partial class ExpressionBuilder
         {
             if (!TypeUtils.IsInteger(lhs.Type) && TypeUtils.IsInteger(rhs.Type))
                 Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-        
+
             if (rhs.Type == typeof(sbyte)
                 || rhs.Type == typeof(byte)
                 || rhs.Type == typeof(short)
                 || rhs.Type == typeof(ushort))
                 rhs = Expression.Convert(rhs, typeof(int));
-        
+
             if (rhs.Type != typeof(int))
                 Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-        
+
             if (lhs.Type == typeof(sbyte)
                 || lhs.Type == typeof(byte)
                 || lhs.Type == typeof(short)
                 || lhs.Type == typeof(ushort))
                 lhs = Expression.Convert(lhs, typeof(int));
-        
+
             if (op.Name == ">>>")
             {
                 if (lhs.Type == typeof(int))
                     return Expression.Convert(
                         apply(Expression.Convert(lhs, typeof(uint)), rhs),
                         typeof(int));
-        
+
                 if (lhs.Type == typeof(long))
                     return Expression.Convert(
                         apply(Expression.Convert(lhs, typeof(ulong)), rhs),
                         typeof(long));
             }
-        
+
             return apply(lhs, rhs);
         }
 

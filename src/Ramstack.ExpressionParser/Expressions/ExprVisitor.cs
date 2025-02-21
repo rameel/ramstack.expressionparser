@@ -14,19 +14,8 @@ public abstract class ExprVisitor<T>
     /// <returns>
     /// A result of type <typeparamref name="T"/> produced by the corresponding visit method.
     /// </returns>
-    public virtual T Visit(Expr expr) => expr.Kind switch
-    {
-        ExprKind.Reference => VisitReference((Expr.Reference)expr),
-        ExprKind.Literal => VisitLiteral((Expr.Literal)expr),
-        ExprKind.Binary => VisitBinary((Expr.Binary)expr),
-        ExprKind.Call => VisitCall((Expr.Call)expr),
-        ExprKind.Index => VisitIndex((Expr.Indexer)expr),
-        ExprKind.MemberAccess => VisitMemberAccess((Expr.MemberAccess)expr),
-        ExprKind.Unary => VisitUnary((Expr.Unary)expr),
-        ExprKind.Conditional => VisitConditional((Expr.Conditional)expr),
-        ExprKind.Parenthesized => VisitParenthesized((Expr.Parenthesized)expr),
-        _ => throw new ArgumentOutOfRangeException(nameof(expr))
-    };
+    public virtual T Visit(Expr expr) =>
+        expr.Accept(this);
 
     /// <summary>
     /// Visits a list of expressions and returns a collection of results.
