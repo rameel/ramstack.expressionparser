@@ -128,7 +128,9 @@ public class DefaultBinder : Binder
     /// <inheritdoc />
     public override MemberInfo? BindToMember(Type? type, Identifier memberName, bool isStatic)
     {
-        var bindingFlags = BindingFlags.Public | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
+        var bindingFlags = isStatic
+            ? BindingFlags.Public | BindingFlags.Static
+            : BindingFlags.Public | BindingFlags.Instance;
 
         var q = type?.GetMembers(bindingFlags)
             ?? PredefinedType
@@ -158,8 +160,9 @@ public class DefaultBinder : Binder
             ? BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static
             : BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Instance;
 
-        return type.GetMethods(bindingFlags)
-            .Where(m => StringComparer.OrdinalIgnoreCase.Equals(m.Name, methodName))
+        return type
+            .GetMethods(bindingFlags)
+            .Where(m => string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase))
             .Distinct();
     }
 }

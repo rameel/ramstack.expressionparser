@@ -187,6 +187,9 @@ IIF(((10 == 10) OrElse (20 == 20)), IIF((1 > 0), 10, 20), IIF((0 < 1), 30, 40))
 StringSplitOptions.None & ~StringSplitOptions.RemoveEmptyEntries
 Convert((Convert(StringSplitOptions.None, Int32) & Convert(Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions), Int32)), StringSplitOptions)
 
+StringSplitOptions.None | StringSplitOptions.RemoveEmptyEntries
+Convert((Convert(StringSplitOptions.None, Int32) | Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions)
+
 ~StringSplitOptions.RemoveEmptyEntries
 Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOptions)
 
@@ -195,3 +198,270 @@ Convert(~(Convert(StringSplitOptions.RemoveEmptyEntries, Int32)), StringSplitOpt
 
 true ^ false
 (True ^ False)
+
+true | false
+(True Or False)
+
+true & false
+(True And False)
+
+#######################################
+# Precedence test
+1 + 2 - 4 * 5 / 4 << 1 & -3 ^ 17 | ~5 >> 2 >>> 1 % 5
+((((((1 + 2) - ((4 * 5) / 4)) << 1) & -3) ^ 17) | Convert((Convert((~(5) >> 2), UInt32) >> (1 % 5)), Int32))
+
+#######################################
+###### Binary Numeric Promotions ######
+#######################################
+
+#######################################
+# If either operand is of type decimal, the other operand is converted to type decimal
+1m + 2
+(1 + Convert(2, Decimal))
+
+1 + 2m
+(Convert(1, Decimal) + 2)
+
+1m + 2:byte
+(1 + Convert(Convert(2, Byte), Decimal))
+
+1m + 2:sbyte
+(1 + Convert(Convert(2, SByte), Decimal))
+
+1m + 2:short
+(1 + Convert(Convert(2, Int16), Decimal))
+
+1m + 2:ushort
+(1 + Convert(Convert(2, UInt16), Decimal))
+
+1m + 2:int
+(1 + Convert(2, Decimal))
+
+1m + 2:uint
+(1 + Convert(Convert(2, UInt32), Decimal))
+
+1m + 2:long
+(1 + Convert(Convert(2, Int64), Decimal))
+
+1m + 2:ulong
+(1 + Convert(Convert(2, UInt64), Decimal))
+
+
+#######################################
+# If either operand is of type double, the other operand is converted to type double.
+
+1d + 2
+(1 + Convert(2, Double))
+
+1 + 2d
+(Convert(1, Double) + 2)
+
+1.0 + 2:byte
+(1 + Convert(Convert(2, Byte), Double))
+
+1.0 + 2:sbyte
+(1 + Convert(Convert(2, SByte), Double))
+
+1.0 + 2:short
+(1 + Convert(Convert(2, Int16), Double))
+
+1.0 + 2:ushort
+(1 + Convert(Convert(2, UInt16), Double))
+
+1.0 + 2:int
+(1 + Convert(2, Double))
+
+1.0 + 2:uint
+(1 + Convert(Convert(2, UInt32), Double))
+
+1.0 + 2:long
+(1 + Convert(Convert(2, Int64), Double))
+
+1.0 + 2:ulong
+(1 + Convert(Convert(2, UInt64), Double))
+
+#######################################
+# If either operand is of type float, the other operand is converted to type float.
+
+1f + 2
+(1 + Convert(2, Single))
+
+1 + 2f
+(Convert(1, Single) + 2)
+
+1.0f + 2:byte
+(1 + Convert(Convert(2, Byte), Single))
+
+1.0f + 2:sbyte
+(1 + Convert(Convert(2, SByte), Single))
+
+1.0f + 2:short
+(1 + Convert(Convert(2, Int16), Single))
+
+1.0f + 2:ushort
+(1 + Convert(Convert(2, UInt16), Single))
+
+1.0f + 2:int
+(1 + Convert(2, Single))
+
+1.0f + 2:uint
+(1 + Convert(Convert(2, UInt32), Single))
+
+1.0f + 2:long
+(1 + Convert(Convert(2, Int64), Single))
+
+1.0f + 2:ulong
+(1 + Convert(Convert(2, UInt64), Single))
+
+#######################################
+# If either operand is of type ulong, the other operand is converted to type ulong
+
+1ul + 2u
+(1 + Convert(2, UInt64))
+
+1u + 2ul
+(Convert(1, UInt64) + 2)
+
+1ul + 2:byte
+(1 + Convert(Convert(2, Byte), UInt64))
+
+1ul + 2:ushort
+(1 + Convert(Convert(2, UInt16), UInt64))
+
+1ul + 2:uint
+(1 + Convert(Convert(2, UInt32), UInt64))
+
+1ul + 2:ulong
+(1 + Convert(2, UInt64))
+
+#######################################
+# If either operand is of type long, the other operand is converted to type long.
+
+1L + 2
+(1 + Convert(2, Int64))
+
+1 + 2L
+(Convert(1, Int64) + 2)
+
+1L + 2:byte
+(1 + Convert(Convert(2, Byte), Int64))
+
+1L + 2:sbyte
+(1 + Convert(Convert(2, SByte), Int64))
+
+1L + 2:short
+(1 + Convert(Convert(2, Int16), Int64))
+
+1L + 2:ushort
+(1 + Convert(Convert(2, UInt16), Int64))
+
+1L + 2:int
+(1 + Convert(2, Int64))
+
+1L + 2:uint
+(1 + Convert(Convert(2, UInt32), Int64))
+
+1L + 2:long
+(1 + Convert(2, Int64))
+
+#######################################
+# If either operand is of type uint and the other operand is of type sbyte, short, or int, both operands are converted to type long.
+# If either operand is of type uint, the other operand is converted to type uint.
+
+1u + 2
+(Convert(1, Int64) + Convert(2, Int64))
+
+1 + 2u
+(Convert(1, Int64) + Convert(2, Int64))
+
+1u + 2:byte
+(1 + Convert(Convert(2, Byte), UInt32))
+
+1u + 2:sbyte
+(Convert(1, Int64) + Convert(Convert(2, SByte), Int64))
+
+1u + 2:short
+(Convert(1, Int64) + Convert(Convert(2, Int16), Int64))
+
+1u + 2:ushort
+(1 + Convert(Convert(2, UInt16), UInt32))
+
+1u + 2:int
+(Convert(1, Int64) + Convert(2, Int64))
+
+1u + 2:uint
+(1 + Convert(2, UInt32))
+
+#######################################
+# Otherwise, both operands are converted to type int.
+
+1 + 2:byte
+(1 + Convert(Convert(2, Byte), Int32))
+
+1 + 2:sbyte
+(1 + Convert(Convert(2, SByte), Int32))
+
+1 + 2:short
+(1 + Convert(Convert(2, Int16), Int32))
+
+1 + 2:ushort
+(1 + Convert(Convert(2, UInt16), Int32))
+
+1 + 2:int
+(1 + 2)
+
+
+#######################################
+###### Unary Numeric Promotions  ######
+#######################################
+
+#######################################
+# + operator
+
++1:byte
++Convert(Convert(1, Byte), Int32)
+
++1:sbyte
++Convert(Convert(1, SByte), Int32)
+
++1:short
++Convert(Convert(1, Int16), Int32)
+
++1:ushort
++Convert(Convert(1, UInt16), Int32)
+
++1:int
++1
+
++1u
++1
+
++1L
++1
+
++1ul
++1
+
+#######################################
+# - operator
+
+-1:byte
+-Convert(Convert(1, Byte), Int32)
+
+-1:sbyte
+-Convert(Convert(1, SByte), Int32)
+
+-1:short
+-Convert(Convert(1, Int16), Int32)
+
+-1:ushort
+-Convert(Convert(1, UInt16), Int32)
+
+-1:int
+-1
+
+-1u
+Convert(1, Int64)
+
+-1L
+-1

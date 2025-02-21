@@ -71,9 +71,14 @@ partial class ExpressionBuilder
                 var paramArrayType = parameter.ParameterType.GetElementType()!;
 
                 for (; i < args.Count; i++)
-                    paramArray.Add(Convert(args[i], paramArrayType));
+                    paramArray.Add(
+                        Convert(args[i], paramArrayType));
 
-                list.Add(Expression.NewArrayInit(paramArrayType, paramArray));
+                list.Add(
+                    Expression.NewArrayInit(
+                        paramArrayType,
+                        paramArray));
+
                 break;
             }
 
@@ -112,10 +117,8 @@ partial class ExpressionBuilder
         if (enumUnderlyingType is not null)
         {
             if (lhs.Type != rhs.Type)
-            {
                 if (lhs.Type.IsEnum ? enumUnderlyingType != rhs.Type : enumUnderlyingType != lhs.Type)
                     Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-            }
 
             if (lhs.Type.IsEnum)
                 lhs = Expression.Convert(lhs, enumUnderlyingType);
@@ -128,35 +131,35 @@ partial class ExpressionBuilder
         {
             if (!TypeUtils.IsInteger(lhs.Type) && TypeUtils.IsInteger(rhs.Type))
                 Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-        
+
             if (rhs.Type == typeof(sbyte)
                 || rhs.Type == typeof(byte)
                 || rhs.Type == typeof(short)
                 || rhs.Type == typeof(ushort))
                 rhs = Expression.Convert(rhs, typeof(int));
-        
+
             if (rhs.Type != typeof(int))
                 Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-        
+
             if (lhs.Type == typeof(sbyte)
                 || lhs.Type == typeof(byte)
                 || lhs.Type == typeof(short)
                 || lhs.Type == typeof(ushort))
                 lhs = Expression.Convert(lhs, typeof(int));
-        
+
             if (op.Name == ">>>")
             {
                 if (lhs.Type == typeof(int))
                     return Expression.Convert(
                         apply(Expression.Convert(lhs, typeof(uint)), rhs),
                         typeof(int));
-        
+
                 if (lhs.Type == typeof(long))
                     return Expression.Convert(
                         apply(Expression.Convert(lhs, typeof(ulong)), rhs),
                         typeof(long));
             }
-        
+
             return apply(lhs, rhs);
         }
 
@@ -183,12 +186,28 @@ partial class ExpressionBuilder
         return result;
     }
 
-    //
-    // 12.4.7 Numeric promotions
-    // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#1247-numeric-promotions
-    //
     private static void ApplyBinaryNumericPromotions(Identifier op, ref Expression lhs, ref Expression rhs)
     {
+        //
+        // 12.4.7.3 Binary numeric promotions
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12473-binary-numeric-promotions
+        //
+        // Binary numeric promotion implicitly converts both operands to a common type which,
+        // in case of the non-relational operators, also becomes the result type of the operation.
+        // Binary numeric promotion consists of applying the following rules, in the order they appear here:
+        //
+        // * If either operand is of type decimal, the other operand is converted to type decimal,
+        //   or a binding-time error occurs if the other operand is of type float or double.
+        // * Otherwise, if either operand is of type double, the other operand is converted to type double.
+        // * Otherwise, if either operand is of type float, the other operand is converted to type float.
+        // * Otherwise, if either operand is of type ulong, the other operand is converted to type ulong,
+        //   or a binding-time error occurs if the other operand is of type sbyte, short, int, or long.
+        // * Otherwise, if either operand is of type long, the other operand is converted to type long.
+        // * Otherwise, if either operand is of type uint and the other operand is of type sbyte, short, or int,
+        //   both operands are converted to type long.
+        // * Otherwise, if either operand is of type uint, the other operand is converted to type uint.
+        // * Otherwise, both operands are converted to type int.
+
         var lhsType = lhs.Type;
         var rhsType = rhs.Type;
 
@@ -218,8 +237,10 @@ partial class ExpressionBuilder
 
             if (conversionType == typeof(decimal))
             {
+                //
                 // If either operand is of type decimal, the other operand is converted to type decimal,
                 // or a compile-time error occurs if the other operand is of type float or double.
+                //
                 if (lhsType == typeof(double)
                     || lhsType == typeof(float)
                     || rhsType == typeof(double)
@@ -228,8 +249,10 @@ partial class ExpressionBuilder
             }
             else if (conversionType == typeof(ulong))
             {
-                // if either operand is of type ulong, the other operand is converted to type ulong,
+                //
+                // If either operand is of type ulong, the other operand is converted to type ulong,
                 // or a compile-time error occurs if the other operand is of type sbyte, short, int, or long.
+                //
                 if (lhsType == typeof(sbyte)
                     || lhsType == typeof(short)
                     || lhsType == typeof(int)
@@ -242,8 +265,10 @@ partial class ExpressionBuilder
             }
             else if (conversionType == typeof(uint))
             {
-                // if either operand is of type uint and the other operand is of type sbyte, short, or int,
+                //
+                // If either operand is of type uint and the other operand is of type sbyte, short, or int,
                 // both operands are converted to type long.
+                //
                 if (lhsType == typeof(sbyte)
                     || lhsType == typeof(short)
                     || lhsType == typeof(int)
@@ -263,25 +288,25 @@ partial class ExpressionBuilder
         }
     }
 
-    private static Func<Expression, Expression, Expression> CreateOperatorFactory(string @operator)
+    private static Func<Expression, Expression, Expression> ResolveBinaryOperatorFactory(string @operator)
     {
         return @operator switch
         {
             "??" => Expression.Coalesce,
-            "||" => Expression.OrElse,
             "&&" => Expression.AndAlso,
-            "|" => Expression.Or,
-            "^" => Expression.ExclusiveOr,
-            "&" => Expression.And,
+            "||" => Expression.OrElse,
             "==" => Expression.Equal,
             "!=" => Expression.NotEqual,
             "<=" => Expression.LessThanOrEqual,
-            "<" => Expression.LessThan,
             ">=" => Expression.GreaterThanOrEqual,
-            ">" => Expression.GreaterThan,
             ">>" => Expression.RightShift,
-            ">>>" => Expression.RightShift,
             "<<" => Expression.LeftShift,
+            ">>>" => Expression.RightShift,
+            "<" => Expression.LessThan,
+            ">" => Expression.GreaterThan,
+            "&" => Expression.And,
+            "|" => Expression.Or,
+            "^" => Expression.ExclusiveOr,
             "+" => Expression.Add,
             "-" => Expression.Subtract,
             "*" => Expression.Multiply,

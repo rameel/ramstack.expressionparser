@@ -93,11 +93,11 @@ public class ExpressionParserTest
             string? e;
 
             while ((s = reader.ReadLine()) is not null)
-                if (!string.IsNullOrWhiteSpace(s))
+                if (!string.IsNullOrWhiteSpace(s) && !s.StartsWith('#'))
                     break;
 
             while ((e = reader.ReadLine()) is not null)
-                if (!string.IsNullOrWhiteSpace(e))
+                if (!string.IsNullOrWhiteSpace(e) && !e.StartsWith('#'))
                     break;
 
             if (s is null || e is null)

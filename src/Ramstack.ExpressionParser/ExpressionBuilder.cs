@@ -37,38 +37,38 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
         var lhs = Visit(expr.Left);
         var rhs = Visit(expr.Right);
 
-        var factory = CreateOperatorFactory(expr.Operator.Name);
+        var lhsType = lhs.Type;
+        var rhsType = rhs.Type;
 
-        var l = lhs;
-        var r = rhs;
+        var factory = ResolveBinaryOperatorFactory(expr.Operator.Name);
 
         switch (expr.Operator.Name)
         {
             case "&&":
             case "||":
-                l = ApplyImplicitConversion(lhs, typeof(bool));
-                r = ApplyImplicitConversion(rhs, typeof(bool));
+                lhs = ApplyImplicitConversion(lhs, typeof(bool));
+                rhs = ApplyImplicitConversion(rhs, typeof(bool));
 
-                if (l is null)
-                    Error.MissingImplicitConversion(lhs.Type, typeof(bool));
+                if (lhs is null)
+                    Error.MissingImplicitConversion(lhsType, typeof(bool));
 
-                if (r is null)
-                    Error.MissingImplicitConversion(rhs.Type, typeof(bool));
+                if (rhs is null)
+                    Error.MissingImplicitConversion(rhsType, typeof(bool));
 
                 break;
 
             case "??":
-                if (lhs.Type.IsValueType && !lhs.Type.IsNullable())
-                    Error.NonApplicableBinaryOperator(expr.Operator, lhs.Type, rhs.Type);
+                if (lhsType.IsValueType && !lhsType.IsNullable())
+                    Error.NonApplicableBinaryOperator(expr.Operator, lhsType, rhsType);
 
-                r = ApplyImplicitConversion(rhs, lhs.Type);
-                if (r is null)
-                    Error.NonApplicableBinaryOperator(expr.Operator, lhs.Type, rhs.Type);
+                rhs = ApplyImplicitConversion(rhs, lhsType);
+                if (rhs is null)
+                    Error.NonApplicableBinaryOperator(expr.Operator, lhsType, rhsType);
 
                 break;
 
             case "+":
-                if (lhs.Type != typeof(string) && rhs.Type != typeof(string))
+                if (lhsType != typeof(string) && rhsType != typeof(string))
                     break;
 
                 var arguments = new List<Expression>();
@@ -137,11 +137,11 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         try
         {
-            return ApplyBinaryExpression(expr.Operator, factory, l, r);
+            return ApplyBinaryExpression(expr.Operator, factory, lhs, rhs);
         }
         catch (Exception e) when (e is not ParseErrorException)
         {
-            Error.NonApplicableBinaryOperator(expr.Operator, lhs.Type, rhs.Type);
+            Error.NonApplicableBinaryOperator(expr.Operator, lhsType, rhsType);
         }
 
         return null!;

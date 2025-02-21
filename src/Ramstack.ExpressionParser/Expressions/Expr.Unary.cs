@@ -3,7 +3,7 @@ namespace Ramstack.Parsing.Expressions;
 partial class Expr
 {
     /// <summary>
-    /// Represents an unary operation expression in an expression tree, consisting of an operator and a single operand.
+    /// Represents a unary operation expression in an expression tree, consisting of an operator and a single operand.
     /// </summary>
     /// <param name="operator">The <see cref="Identifier"/> representing the unary operator, e.g., <c>"-"</c> or <c>"int"</c>.</param>
     /// <param name="unaryType">The <see cref="UnaryType"/> specifying the kind of unary operation (e.g., arithmetic or conversion).</param>

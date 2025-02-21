@@ -18,7 +18,7 @@ public abstract class Binder
     /// </summary>
     /// <param name="name">The <see cref="Identifier"/> representing the name of the requested type.</param>
     /// <returns>
-    /// The <see cref="Type"/> instance corresponding to the specified <paramref name="name"/> 
+    /// The <see cref="Type"/> instance corresponding to the specified <paramref name="name"/>
     /// if resolved successfully; otherwise, <see langword="null"/>.
     /// </returns>
     public abstract Type? BindToType(Identifier name);
