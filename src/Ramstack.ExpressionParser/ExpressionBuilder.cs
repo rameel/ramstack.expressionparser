@@ -277,7 +277,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                         Error.NonInvocableMember(m);
 
                     //
-                    // It's not supposed to happen
+                    // This shouldn't happen, but we'll crash if it does
                     //
                     if (expression is null)
                         throw new InvalidOperationException(
