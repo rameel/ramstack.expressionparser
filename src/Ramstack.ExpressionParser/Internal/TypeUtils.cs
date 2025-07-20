@@ -117,12 +117,12 @@ public static class TypeUtils
         if (source.IsEnum)
             return false;
 
-        if ((source == typeof(IntPtr)  && target == typeof(IntPtr)) ||
-            (source == typeof(UIntPtr) && target == typeof(UIntPtr)))
+        if ((source == typeof(IntPtr) && target == typeof(IntPtr))
+            || (source == typeof(UIntPtr) && target == typeof(UIntPtr)))
             return true;
 
-        var s = PrimitiveConversions[(int)(Type.GetTypeCode(source))];
-        var t = (Primitives)(1 << (int)(Type.GetTypeCode(target)));
+        var s = PrimitiveConversions[(int)Type.GetTypeCode(source)];
+        var t = (Primitives)(1 << (int)Type.GetTypeCode(target));
 
         return (s & t) != 0;
     }
