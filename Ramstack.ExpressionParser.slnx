@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/.root/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/Ramstack.ExpressionParser/Ramstack.ExpressionParser.csproj" />
+  <Project Path="tests/Ramstack.ExpressionParser.Tests/Ramstack.ExpressionParser.Tests.csproj" />
+</Solution>
