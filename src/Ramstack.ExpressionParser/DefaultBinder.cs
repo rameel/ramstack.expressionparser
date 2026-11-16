@@ -96,10 +96,10 @@ public class DefaultBinder : Binder
     }
 
     /// <inheritdoc />
-    public override Type? BindToType(Identifier typeName)
+    public override Type? BindToType(Identifier name)
     {
-        if (!PredefinedType.TryGetValue(typeName.Name, out var value))
-            _types.TryGetValue(typeName.Name, out value);
+        if (!PredefinedType.TryGetValue(name.Name, out var value))
+            _types.TryGetValue(name.Name, out value);
 
         return value.type;
     }
