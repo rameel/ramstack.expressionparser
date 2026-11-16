@@ -5,6 +5,8 @@ partial class Expr
     /// <summary>
     /// Represents a method call expression in an expression tree, consisting of a target expression and its parameters.
     /// </summary>
+    [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords",
+        Justification = "The type is named after the ExprKind.Call expression kind, and renaming it would break the public API.")]
     public sealed class Call(Expr expression, IReadOnlyList<Expr> parameters) : Expr(ExprKind.Call)
     {
         /// <summary>
