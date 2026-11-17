@@ -8,7 +8,8 @@ partial class Expr
     /// <param name="operator">The <see cref="Identifier"/> representing the unary operator, e.g., <c>"-"</c> or <c>"int"</c>.</param>
     /// <param name="unaryType">The <see cref="UnaryType"/> specifying the kind of unary operation (e.g., arithmetic or conversion).</param>
     /// <param name="operand">The <see cref="Expr"/> on which the unary operation is applied.</param>
-    public sealed class Unary(Identifier @operator, UnaryType unaryType, Expr operand) : Expr(ExprKind.Unary)
+    public sealed class Unary(Identifier @operator, UnaryType unaryType, Expr operand)
+        : Expr(ExprKind.Unary, operand.Depth + 1)
     {
         /// <summary>
         /// Gets the operator of the unary expression.

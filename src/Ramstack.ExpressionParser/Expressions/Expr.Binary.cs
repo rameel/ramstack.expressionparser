@@ -5,7 +5,8 @@ partial class Expr
     /// <summary>
     /// Represents a binary operation expression in an expression tree, consisting of an operator and two operands.
     /// </summary>
-    public sealed class Binary(Identifier @operator, Expr lhs, Expr rhs) : Expr(ExprKind.Binary)
+    public sealed class Binary(Identifier @operator, Expr lhs, Expr rhs)
+        : Expr(ExprKind.Binary, Math.Max(lhs.Depth, rhs.Depth) + 1)
     {
         /// <summary>
         /// Gets the operator of the binary expression.

@@ -7,7 +7,8 @@ partial class Expr
     /// </summary>
     [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords",
         Justification = "The type is named after the ExprKind.Call expression kind, and renaming it would break the public API.")]
-    public sealed class Call(Expr expression, IReadOnlyList<Expr> parameters) : Expr(ExprKind.Call)
+    public sealed class Call(Expr expression, IReadOnlyList<Expr> parameters)
+        : Expr(ExprKind.Call, ComputeDepth(expression, parameters))
     {
         /// <summary>
         /// Gets the expression being called, such as a method or function reference.

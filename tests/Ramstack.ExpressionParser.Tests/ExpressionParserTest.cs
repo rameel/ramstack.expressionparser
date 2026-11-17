@@ -34,6 +34,29 @@ public class ExpressionParserTest
         }
     }
 
+    private static IEnumerable<TestCaseData> DeepExpressionSource
+    {
+        get
+        {
+            const int Count = 200_000;
+
+            yield return Case("prefix operators", new string('-', Count) + "1");
+            yield return Case("casts", "1" + Repeat(":int", Count));
+            yield return Case("binary operators", string.Join(" + ", Enumerable.Repeat("1", Count)));
+            yield return Case("null-coalescing operators", string.Join(" ?? ", Enumerable.Repeat("\"a\"", Count)));
+            yield return Case("member access", "\"a\"" + Repeat(".Length.ToString()", Count));
+            yield return Case("indexers", "\"a\"" + Repeat("[0].ToString()", Count));
+            yield return Case("calls", "\"a\"" + Repeat("()", Count));
+            yield return Case("calls on a member", "\"a\".ToString" + Repeat("()", Count));
+
+            static TestCaseData Case(string name, string expression) =>
+                new TestCaseData(expression).SetArgDisplayNames(name);
+
+            static string Repeat(string value, int count) =>
+                string.Concat(Enumerable.Repeat(value, count));
+        }
+    }
+
     [OneTimeSetUp]
     public void Setup()
     {
@@ -64,6 +87,29 @@ public class ExpressionParserTest
 
         Assert.That(result.Success, Is.False);
         Assert.That(result.ToString(), Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void MaxDepthTest()
+    {
+        //
+        // The literal is the first level, and each operator adds one more level.
+        //
+        Assert.That(ExpressionParser.Parse(new string('-', 255) + "1").Success, Is.True);
+        Assert.That(ExpressionParser.Parse(new string('-', 256) + "1").ToString(),
+            Is.EqualTo("(1:258) The expression exceeds the maximum depth of 256."));
+
+        Assert.That(ExpressionParser.Parse(string.Join("+", Enumerable.Repeat("1", 256))).Success, Is.True);
+        Assert.That(ExpressionParser.Parse(string.Join("+", Enumerable.Repeat("1", 257))).Success, Is.False);
+    }
+
+    [TestCaseSource(nameof(DeepExpressionSource))]
+    public void DeepExpressionTest(string expression)
+    {
+        var result = ExpressionParser.Parse(expression, new DefaultBinder());
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.EndWith("The expression exceeds the maximum depth of 256."));
     }
 
     [TestCaseSource(nameof(ExpressionSource))]

@@ -7,8 +7,24 @@ namespace Ramstack.Parsing;
 partial class ExpressionParser
 {
     /// <summary>
+    /// The maximum depth of an expression tree produced by the parser.
+    /// </summary>
+    /// <remarks>
+    /// The expression builder, the <c>ToString</c> methods of the expression nodes, and other visitors
+    /// process the tree recursively.
+    /// On a 1 MB stack, the expression builder overflows the stack at a depth of about 1,000 in a Debug build,
+    /// so the limit leaves room for the caller's own stack frames.
+    /// </remarks>
+    private const int MaxDepth = 256;
+
+    /// <summary>
     /// Gets the sub-expression parser, which serves as the base parser for expressions.
     /// </summary>
+    /// <remarks>
+    /// Parsing stops with a fatal error if the expression tree is deeper than 256 levels.
+    /// Each operator, member access, call, indexer, and pair of parentheses adds a level,
+    /// so a chain such as <c>a + b + c</c> counts as deeply as the nested expression <c>((a + b) + c)</c>.
+    /// </remarks>
     public static Parser<Expr> Subparser { get; } = CreateParser();
 
     /// <summary>
@@ -131,7 +147,12 @@ partial class ExpressionParser
                     expr = indexer
                         ? new Expr.Indexer(expr, parameters)
                         : new Expr.Call(expr, parameters);
-                return expr;
+
+                //
+                // HijackMemberExpression processes this chain recursively during parsing,
+                // so check the depth before the chain reaches it.
+                //
+                return EnsureDepth(expr);
             });
 
         var member_expression =
@@ -259,7 +280,22 @@ partial class ExpressionParser
         expression.Parser =
             conditional_expression;
 
-        return S.Then(expression);
+        return S.Then(expression).Do(EnsureDepth);
+    }
+
+    /// <summary>
+    /// Stops parsing with a fatal error if the specified expression tree is deeper than <see cref="MaxDepth"/>.
+    /// </summary>
+    /// <param name="expr">The expression tree to check.</param>
+    /// <returns>
+    /// The specified expression tree.
+    /// </returns>
+    private static Expr EnsureDepth(Expr expr)
+    {
+        if (expr.Depth > MaxDepth)
+            FatalError($"The expression exceeds the maximum depth of {MaxDepth}.");
+
+        return expr;
     }
 
     private static Identifier CreateIdentifier(string v) =>
