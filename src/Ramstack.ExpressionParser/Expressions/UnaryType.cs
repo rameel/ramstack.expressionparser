@@ -9,7 +9,7 @@ public enum UnaryType
     /// Represents a type cast or conversion operation, such as converting a value to a specific type.
     /// </summary>
     /// <example>
-    /// In the expression <c>x:int</c>, this indicates a conversion of <c>x</c> to an integer.
+    /// In the expression <c>x :> int</c>, this indicates a conversion of <c>x</c> to an integer.
     /// </example>
     Convert,
 

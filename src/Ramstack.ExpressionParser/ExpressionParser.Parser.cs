@@ -173,11 +173,15 @@ partial class ExpressionParser
                 }
             });
 
+        //
+        // The conversion operator is ':>' rather than ':', which would conflict with the conditional
+        // operator: in 'flag ? 0 : count', ': count' would be taken for a conversion to the type 'count'.
+        //
         var cast_expression =
             Seq(
                 member_expression,
                 identifier.Between(
-                    Seq(L(':'), S),
+                    Seq(L(":>"), S),
                     S).Many()
             ).Do((expr, ids) =>
             {

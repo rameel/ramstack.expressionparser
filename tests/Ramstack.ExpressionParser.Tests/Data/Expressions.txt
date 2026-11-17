@@ -1,13 +1,13 @@
-1:byte + 2:byte
+1:>byte + 2:>byte
 (Convert(Convert(1, Byte), Int32) + Convert(Convert(2, Byte), Int32))
 
-1:short + 2
+1:>short + 2
 (Convert(Convert(1, Int16), Int32) + 2)
 
-1 + 2:short
+1 + 2:>short
 (1 + Convert(Convert(2, Int16), Int32))
 
--1:sbyte
+-1:>sbyte
 -Convert(Convert(1, SByte), Int32)
 
 -2147483648
@@ -37,7 +37,7 @@ Convert((Convert(-9223372036854775808, UInt64) >> 4), Int64)
 5000 >> 4
 (5000 >> 4)
 
-1:byte << 4
+1:>byte << 4
 (Convert(Convert(1, Byte), Int32) << 4)
 
 byte.MaxValue + 1
@@ -46,7 +46,7 @@ byte.MaxValue + 1
 byte.MaxValue + byte.MinValue
 (Convert(Byte.MaxValue, Int32) + Convert(Byte.MinValue, Int32))
 
-~1:short
+~1:>short
 ~(Convert(Convert(1, Int16), Int32))
 
 -100u
@@ -73,7 +73,7 @@ IIF((1 == 1), IIF((2 == 2), IIF((3 == 3), (4 == 4), (5 == 5)), (6 == 6)), (7 == 
 Math.PI * 2 + 1
 ((Math.PI * Convert(2, Double)) + Convert(1, Double))
 
-Math.PI:float * 2 + 1
+Math.PI:>float * 2 + 1
 ((Convert(Math.PI, Single) * Convert(2, Single)) + Convert(1, Single))
 
 2.93E5f + 2.17d
@@ -206,6 +206,32 @@ true & false
 (True And False)
 
 #######################################
+# Conditional operator branches that start with an identifier or contain a conversion
+true ? Math.PI : Math.E
+IIF(True, Math.PI, Math.E)
+
+1 > 0 ? int.MaxValue : int.MinValue
+IIF((1 > 0), Int32.MaxValue, Int32.MinValue)
+
+true ? "a" : string.Empty
+IIF(True, "a", String.Empty)
+
+true ? null : null
+IIF(True, null, null)
+
+1 > 0 ? 2 > 0 ? int.MaxValue : int.MinValue : 0
+IIF((1 > 0), IIF((2 > 0), Int32.MaxValue, Int32.MinValue), 0)
+
+1 > 0 ? 0 : 2 > 0 ? int.MaxValue : int.MinValue
+IIF((1 > 0), 0, IIF((2 > 0), Int32.MaxValue, Int32.MinValue))
+
+true ? 1 :> long : 2 :> long
+IIF(True, Convert(1, Int64), Convert(2, Int64))
+
+true ? 1:>long:>int : 2
+IIF(True, Convert(Convert(1, Int64), Int32), 2)
+
+#######################################
 # Precedence test
 1 + 2 - 4 * 5 / 4 << 1 & -3 ^ 17 | ~5 >> 2 >>> 1 % 5
 ((((((1 + 2) - ((4 * 5) / 4)) << 1) & -3) ^ 17) | Convert((Convert((~(5) >> 2), UInt32) >> (1 % 5)), Int32))
@@ -222,28 +248,28 @@ true & false
 1 + 2m
 (Convert(1, Decimal) + 2)
 
-1m + 2:byte
+1m + 2:>byte
 (1 + Convert(Convert(2, Byte), Decimal))
 
-1m + 2:sbyte
+1m + 2:>sbyte
 (1 + Convert(Convert(2, SByte), Decimal))
 
-1m + 2:short
+1m + 2:>short
 (1 + Convert(Convert(2, Int16), Decimal))
 
-1m + 2:ushort
+1m + 2:>ushort
 (1 + Convert(Convert(2, UInt16), Decimal))
 
-1m + 2:int
+1m + 2:>int
 (1 + Convert(2, Decimal))
 
-1m + 2:uint
+1m + 2:>uint
 (1 + Convert(Convert(2, UInt32), Decimal))
 
-1m + 2:long
+1m + 2:>long
 (1 + Convert(Convert(2, Int64), Decimal))
 
-1m + 2:ulong
+1m + 2:>ulong
 (1 + Convert(Convert(2, UInt64), Decimal))
 
 
@@ -256,28 +282,28 @@ true & false
 1 + 2d
 (Convert(1, Double) + 2)
 
-1.0 + 2:byte
+1.0 + 2:>byte
 (1 + Convert(Convert(2, Byte), Double))
 
-1.0 + 2:sbyte
+1.0 + 2:>sbyte
 (1 + Convert(Convert(2, SByte), Double))
 
-1.0 + 2:short
+1.0 + 2:>short
 (1 + Convert(Convert(2, Int16), Double))
 
-1.0 + 2:ushort
+1.0 + 2:>ushort
 (1 + Convert(Convert(2, UInt16), Double))
 
-1.0 + 2:int
+1.0 + 2:>int
 (1 + Convert(2, Double))
 
-1.0 + 2:uint
+1.0 + 2:>uint
 (1 + Convert(Convert(2, UInt32), Double))
 
-1.0 + 2:long
+1.0 + 2:>long
 (1 + Convert(Convert(2, Int64), Double))
 
-1.0 + 2:ulong
+1.0 + 2:>ulong
 (1 + Convert(Convert(2, UInt64), Double))
 
 #######################################
@@ -289,28 +315,28 @@ true & false
 1 + 2f
 (Convert(1, Single) + 2)
 
-1.0f + 2:byte
+1.0f + 2:>byte
 (1 + Convert(Convert(2, Byte), Single))
 
-1.0f + 2:sbyte
+1.0f + 2:>sbyte
 (1 + Convert(Convert(2, SByte), Single))
 
-1.0f + 2:short
+1.0f + 2:>short
 (1 + Convert(Convert(2, Int16), Single))
 
-1.0f + 2:ushort
+1.0f + 2:>ushort
 (1 + Convert(Convert(2, UInt16), Single))
 
-1.0f + 2:int
+1.0f + 2:>int
 (1 + Convert(2, Single))
 
-1.0f + 2:uint
+1.0f + 2:>uint
 (1 + Convert(Convert(2, UInt32), Single))
 
-1.0f + 2:long
+1.0f + 2:>long
 (1 + Convert(Convert(2, Int64), Single))
 
-1.0f + 2:ulong
+1.0f + 2:>ulong
 (1 + Convert(Convert(2, UInt64), Single))
 
 #######################################
@@ -322,16 +348,16 @@ true & false
 1u + 2ul
 (Convert(1, UInt64) + 2)
 
-1ul + 2:byte
+1ul + 2:>byte
 (1 + Convert(Convert(2, Byte), UInt64))
 
-1ul + 2:ushort
+1ul + 2:>ushort
 (1 + Convert(Convert(2, UInt16), UInt64))
 
-1ul + 2:uint
+1ul + 2:>uint
 (1 + Convert(Convert(2, UInt32), UInt64))
 
-1ul + 2:ulong
+1ul + 2:>ulong
 (1 + Convert(2, UInt64))
 
 #######################################
@@ -343,25 +369,25 @@ true & false
 1 + 2L
 (Convert(1, Int64) + 2)
 
-1L + 2:byte
+1L + 2:>byte
 (1 + Convert(Convert(2, Byte), Int64))
 
-1L + 2:sbyte
+1L + 2:>sbyte
 (1 + Convert(Convert(2, SByte), Int64))
 
-1L + 2:short
+1L + 2:>short
 (1 + Convert(Convert(2, Int16), Int64))
 
-1L + 2:ushort
+1L + 2:>ushort
 (1 + Convert(Convert(2, UInt16), Int64))
 
-1L + 2:int
+1L + 2:>int
 (1 + Convert(2, Int64))
 
-1L + 2:uint
+1L + 2:>uint
 (1 + Convert(Convert(2, UInt32), Int64))
 
-1L + 2:long
+1L + 2:>long
 (1 + Convert(2, Int64))
 
 #######################################
@@ -374,40 +400,40 @@ true & false
 1 + 2u
 (Convert(1, Int64) + Convert(2, Int64))
 
-1u + 2:byte
+1u + 2:>byte
 (1 + Convert(Convert(2, Byte), UInt32))
 
-1u + 2:sbyte
+1u + 2:>sbyte
 (Convert(1, Int64) + Convert(Convert(2, SByte), Int64))
 
-1u + 2:short
+1u + 2:>short
 (Convert(1, Int64) + Convert(Convert(2, Int16), Int64))
 
-1u + 2:ushort
+1u + 2:>ushort
 (1 + Convert(Convert(2, UInt16), UInt32))
 
-1u + 2:int
+1u + 2:>int
 (Convert(1, Int64) + Convert(2, Int64))
 
-1u + 2:uint
+1u + 2:>uint
 (1 + Convert(2, UInt32))
 
 #######################################
 # Otherwise, both operands are converted to type int.
 
-1 + 2:byte
+1 + 2:>byte
 (1 + Convert(Convert(2, Byte), Int32))
 
-1 + 2:sbyte
+1 + 2:>sbyte
 (1 + Convert(Convert(2, SByte), Int32))
 
-1 + 2:short
+1 + 2:>short
 (1 + Convert(Convert(2, Int16), Int32))
 
-1 + 2:ushort
+1 + 2:>ushort
 (1 + Convert(Convert(2, UInt16), Int32))
 
-1 + 2:int
+1 + 2:>int
 (1 + 2)
 
 
@@ -418,19 +444,19 @@ true & false
 #######################################
 # + operator
 
-+1:byte
++1:>byte
 +Convert(Convert(1, Byte), Int32)
 
-+1:sbyte
++1:>sbyte
 +Convert(Convert(1, SByte), Int32)
 
-+1:short
++1:>short
 +Convert(Convert(1, Int16), Int32)
 
-+1:ushort
++1:>ushort
 +Convert(Convert(1, UInt16), Int32)
 
-+1:int
++1:>int
 +1
 
 +1u
@@ -445,19 +471,19 @@ true & false
 #######################################
 # - operator
 
--1:byte
+-1:>byte
 -Convert(Convert(1, Byte), Int32)
 
--1:sbyte
+-1:>sbyte
 -Convert(Convert(1, SByte), Int32)
 
--1:short
+-1:>short
 -Convert(Convert(1, Int16), Int32)
 
--1:ushort
+-1:>ushort
 -Convert(Convert(1, UInt16), Int32)
 
--1:int
+-1:>int
 -1
 
 -1u

@@ -10,23 +10,29 @@ Guid
 Guid.Value
 Cannot resolve symbol 'Value'.
 
-string.Empty:text
+string.Empty:>text
 Cannot resolve symbol 'text'.
 
-single.10:text
+single.10:>text
 Identifier expected (expression: 10).
 
-float."10":text
+float."10":>text
 Identifier expected (expression: "10").
 
-int.true:text
-(1:4) Expected '(', '[', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+int.true:>text
+(1:4) Expected '(', '[', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
-double.false:text
-(1:7) Expected '(', '[', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+double.false:>text
+(1:7) Expected '(', '[', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
-Math.int:text
+Math.int:>text
 Cannot resolve symbol 'int'.
+
+1 :> 2
+(1:6) Expected identifier
+
+1:int
+(1:2) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
 byte(20)
 Non-invocable member 'byte' cannot be used like a method.
@@ -35,7 +41,7 @@ short.maxvalue(10)
 Non-invocable member 'maxvalue' cannot be used like a method.
 
 1 + (2 * 3
-(1:11) Expected '(', '[', '.', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or ')'
+(1:11) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or ')'
 
 1 + 2 * 3(
 (1:11) Expected ')'
@@ -50,7 +56,7 @@ Cannot apply indexing with [] to an expression of type 'System.Int32'.
 (1:11) Expected ']'
 
 1 + 2 * 3]
-(1:10) Expected '(', '[', '.', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+(1:10) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
 1 // 2 * 3
 (1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
@@ -77,7 +83,7 @@ Cannot apply indexing with [] to an expression of type 'System.Int32'.
 (1:4) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
 
 0xp
-(1:2) Expected '(', '[', '.', ':', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+(1:2) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
 "test"[]
 Ambiguous match found:\n    Char Chars [Int32] (in System.String)
@@ -112,16 +118,16 @@ Operator '+' cannot be applied to operands of type 'System.Decimal' and 'System.
 # If either operand is of type ulong, a binding-time error occurs
 # if the other operand is of type sbyte, short, int, or long.
 
-1ul + 2:sbyte
+1ul + 2:>sbyte
 Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.SByte'.
 
-1ul + 2:short
+1ul + 2:>short
 Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.Int16'.
 
-1ul + 2:int
+1ul + 2:>int
 Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.Int32'.
 
-1ul + 2:long
+1ul + 2:>long
 Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.Int64'.
 
 #######################################
