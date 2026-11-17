@@ -75,11 +75,11 @@ partial class Expr
 
         /// <inheritdoc />
         /// <returns>
-        /// A string representation of the unary expression, e.g., <c>-x</c> for operators or <c>x:int</c> for conversions.
+        /// A string representation of the unary expression, e.g., <c>-x</c> for operators or <c>x :> int</c> for conversions.
         /// </returns>
         public override string ToString() => UnaryType switch
         {
-            UnaryType.Convert => $"{Operand}:{Operator}",
+            UnaryType.Convert => $"{Operand} :> {Operator}",
             _ => $"{Operator}({Operand})"
         };
     }

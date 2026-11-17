@@ -44,7 +44,7 @@ public class ExpressionParserTest
             const int Count = 200_000;
 
             yield return Case("prefix operators", new string('-', Count) + "1");
-            yield return Case("casts", "1" + Repeat(":int", Count));
+            yield return Case("casts", "1" + Repeat(":>int", Count));
             yield return Case("binary operators", string.Join(" + ", Enumerable.Repeat("1", Count)));
             yield return Case("null-coalescing operators", string.Join(" ?? ", Enumerable.Repeat("\"a\"", Count)));
             yield return Case("member access", "\"a\"" + Repeat(".Length.ToString()", Count));
@@ -88,7 +88,7 @@ public class ExpressionParserTest
         get
         {
             yield return Case("prefix operators", new string('-', 255) + "1");
-            yield return Case("casts", "1" + Repeat(":int", 255));
+            yield return Case("casts", "1" + Repeat(":>int", 255));
             yield return Case("binary operators", string.Join(" + ", Enumerable.Repeat("1", 256)));
             yield return Case("null-coalescing operators", string.Join(" ?? ", Enumerable.Repeat("\"a\"", 256)));
             yield return Case("indexers and calls", "\"abc\"" + Repeat("[0].ToString()", 85));

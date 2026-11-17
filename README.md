@@ -54,6 +54,16 @@ public bool IsEnabled(LogEvent logEvent)
 
 This makes it easy to create dynamic, human-readable expressions for filtering or evaluating objects at runtime.
 
+### Type conversions
+
+Use the `:>` operator to convert a value to a type, for example `count :> long` or `Math.PI :> float`.
+A conversion binds more tightly than prefix and binary operators, so `-x :> int` means `-(x :> int)`,
+and `x :> long + 1` means `(x :> long) + 1`.
+
+Earlier versions wrote conversions as `x:int`. That syntax conflicted with the conditional operator,
+so expressions such as `flag ? 0 : count` failed to parse. It is no longer supported;
+replace `x:int` with `x :> int`.
+
 ### Limits
 
 An expression tree can be at most 256 levels deep. Each operator, member access, call, indexer,
