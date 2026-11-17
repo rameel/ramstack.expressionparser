@@ -503,3 +503,18 @@ Not((1 > 0))
 
 !!false
 Not(Not(False))
+
+#######################################
+# Enum conversions
+
+DayOfWeek.Friday :> object
+Convert(DayOfWeek.Friday, Object)
+
+1 :> DayOfWeek :> object
+Convert(Convert(1, DayOfWeek), Object)
+
+DayOfWeek.Friday :> long
+Convert(DayOfWeek.Friday, Int64)
+
+DayOfWeek.Friday :> DayOfWeek
+DayOfWeek.Friday

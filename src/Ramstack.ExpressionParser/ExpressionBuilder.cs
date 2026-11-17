@@ -380,7 +380,12 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             ? operandType.GetEnumUnderlyingType()
             : operandType;
 
-        if (operandType.IsEnum)
+        //
+        // Arithmetic and bitwise operators apply to the underlying type of an enum.
+        // A conversion takes the enum itself, so that converting it to object boxes the enum
+        // rather than its underlying value.
+        //
+        if (operandType.IsEnum && expr.UnaryType != UnaryType.Convert)
             operand = Expression.Convert(operand, underlyingType);
 
         switch (expr.UnaryType, operand)

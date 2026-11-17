@@ -33,6 +33,8 @@ public class ExpressionParserTest
             list.Add([""" 0x8000000000000000""", 0x8000000000000000L]);
             list.Add(["""ulong.MaxValue""", ulong.MaxValue]);
             list.Add(["""Guid.Empty""", Guid.Empty]);
+            list.Add(["""1 :> DayOfWeek :> object""", DayOfWeek.Monday]);
+            list.Add(["""(DayOfWeek.Friday :> object).ToString()""", "Friday"]);
             return list;
         }
     }
