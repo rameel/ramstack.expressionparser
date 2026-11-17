@@ -126,6 +126,13 @@ public class ExpressionParserTest
     public void EvaluateExpression(string expression, object result) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.EqualTo(result));
 
+    [TestCase("-1u", -1L)]
+    [TestCase("-4294967295u", -4294967295L)]
+    [TestCase("-3000000000", -3000000000L)]
+    [TestCase("-(5 :> uint)", -5L)]
+    public void Evaluate_NegatedUInt32_ReturnsNegatedInt64(string expression, long expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<long>().And.EqualTo(expected));
+
     [TestCase("!Flag", false)]
     [TestCase("!NullableFlag", true)]
     [TestCase("!WithLogicalNot", true)]

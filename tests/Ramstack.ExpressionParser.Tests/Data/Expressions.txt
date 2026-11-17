@@ -50,7 +50,7 @@ byte.MaxValue + byte.MinValue
 ~(Convert(Convert(1, Int16), Int32))
 
 -100u
-Convert(100, Int64)
+-Convert(100, Int64)
 
 null ?? null ?? string.Empty
 (null ?? (null ?? String.Empty))
@@ -487,7 +487,7 @@ IIF(True, Convert(Convert(1, Int64), Int32), 2)
 -1
 
 -1u
-Convert(1, Int64)
+-Convert(1, Int64)
 
 -1L
 -1

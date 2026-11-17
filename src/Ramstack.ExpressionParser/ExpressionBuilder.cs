@@ -396,8 +396,13 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             case (UnaryType.Negate, ConstantExpression { Value: 0x8000000000000000ul }):
                 return Expression.Constant(long.MinValue);
 
+            //
+            // C# has no negation operator for uint, so the operand is converted to long
+            // and then negated, which keeps the sign of the result.
+            //
             case (UnaryType.Negate, _) when operand.Type == typeof(uint):
-                return Expression.Convert(operand, typeof(long));
+                operand = Expression.Convert(operand, typeof(long));
+                break;
 
             case (not UnaryType.Convert, _) when underlyingType == typeof(byte):
             case (not UnaryType.Convert, _) when underlyingType == typeof(sbyte):
