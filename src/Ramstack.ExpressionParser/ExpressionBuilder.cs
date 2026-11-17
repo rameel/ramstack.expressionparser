@@ -17,6 +17,19 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     public Binder Binder { get; } = binder;
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Throws a <see cref="ParseErrorException"/> if the thread's stack is too small
+    /// to visit the expression safely.
+    /// </remarks>
+    public override Expression Visit(Expr expr)
+    {
+        if (!RuntimeHelpers.TryEnsureSufficientExecutionStack())
+            Error.Throw("The expression is nested too deeply.");
+
+        return base.Visit(expr);
+    }
+
+    /// <inheritdoc />
     protected internal override Expression VisitReference(Expr.Reference expr)
     {
         var symbol = ResolveSymbol(expr);

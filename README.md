@@ -54,6 +54,16 @@ public bool IsEnabled(LogEvent logEvent)
 
 This makes it easy to create dynamic, human-readable expressions for filtering or evaluating objects at runtime.
 
+### Limits
+
+An expression tree can be at most 256 levels deep. Each operator, member access, call, indexer,
+and pair of parentheses adds a level, so `a + b + c` counts as deeply as `((a + b) + c)`.
+Parsing fails with an error rather than crashing the process when an expression is deeper than that,
+or when it is nested too deeply to fit on the stack of the current thread.
+
+Parsing an expression takes time and memory that grow with its length,
+so limit the length of expressions that come from untrusted sources.
+
 ## Supported Versions
 
 |      | Version    |
