@@ -151,3 +151,36 @@ Unary operator '!' cannot be applied to operand of type 'System.Byte'.
 
 !DayOfWeek.Friday
 Unary operator '!' cannot be applied to operand of type 'System.DayOfWeek'.
+
+#######################################
+# Conditional operator branches without a common type
+
+true ? 1.0 : 2m
+Operator '?:' cannot be applied to operands of type 'System.Double' and 'System.Decimal'.
+
+true ? 1 : 1ul
+Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.UInt64'.
+
+true ? 1 : 1u
+Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.UInt32'.
+
+true ? 1 : "a"
+Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.String'.
+
+true ? "a" : Version.Parse("1.0")
+Operator '?:' cannot be applied to operands of type 'System.String' and 'System.Version'.
+
+true ? Guid.Empty : DateTime.MinValue
+Operator '?:' cannot be applied to operands of type 'System.Guid' and 'System.DateTime'.
+
+true ? 1 : DayOfWeek.Friday
+Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.DayOfWeek'.
+
+true ? 1 : null
+Operator '?:' cannot be applied to operands of type 'System.Int32' and '<null>'.
+
+true ? null : null
+Operator '?:' cannot be applied to operands of type '<null>' and '<null>'.
+
+(true ? "abc" : null :> object).Length
+Cannot resolve symbol 'Length'.

@@ -216,8 +216,8 @@ IIF((1 > 0), Int32.MaxValue, Int32.MinValue)
 true ? "a" : string.Empty
 IIF(True, "a", String.Empty)
 
-true ? null : null
-IIF(True, null, null)
+true ? "a" : null
+IIF(True, "a", null)
 
 1 > 0 ? 2 > 0 ? int.MaxValue : int.MinValue : 0
 IIF((1 > 0), IIF((2 > 0), Int32.MaxValue, Int32.MinValue), 0)
@@ -518,3 +518,33 @@ Convert(DayOfWeek.Friday, Int64)
 
 DayOfWeek.Friday :> DayOfWeek
 DayOfWeek.Friday
+
+#######################################
+# Conditional operator branches of different types
+
+true ? 1 : 2.0
+IIF(True, Convert(1, Double), 2)
+
+false ? 1 : 2m
+IIF(False, Convert(1, Decimal), 2)
+
+true ? 'a' : 1
+IIF(True, Convert(a, Int32), 1)
+
+true ? 1 :> byte : 2 :> short
+IIF(True, Convert(Convert(1, Byte), Int16), Convert(2, Int16))
+
+true ? 1u : 1L
+IIF(True, Convert(1, Int64), 1)
+
+false ? null : "a"
+IIF(False, null, "a")
+
+true ? (null) : "a"
+IIF(True, null, "a")
+
+(true ? "abc" : null).Length
+IIF(True, "abc", null).Length
+
+true ? 1 : 2 :> object
+IIF(True, Convert(1, Object), Convert(2, Object))
