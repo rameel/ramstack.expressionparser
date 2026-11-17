@@ -164,6 +164,9 @@ Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.U
 true ? 1 : 1u
 Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.UInt32'.
 
+true ? 1 :> byte : 'c'
+Operator '?:' cannot be applied to operands of type 'System.Byte' and 'System.Char'.
+
 true ? 1 : "a"
 Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.String'.
 

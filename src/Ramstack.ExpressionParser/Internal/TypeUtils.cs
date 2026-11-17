@@ -15,7 +15,7 @@ public static class TypeUtils
         /* Boolean  */  Primitives.Boolean,
         /* Char     */  Primitives.Char    | Primitives.UInt16 | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single |  Primitives.Double | Primitives.Decimal,
         /* SByte    */  Primitives.SByte   | Primitives.Int16  | Primitives.Int32  | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
-        /* Byte     */  Primitives.Byte    | Primitives.Char   | Primitives.UInt16 | Primitives.Int16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 |  Primitives.Int64 |  Primitives.Single |  Primitives.Double | Primitives.Decimal,
+        /* Byte     */  Primitives.Byte    | Primitives.UInt16 | Primitives.Int16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 |  Primitives.Int64 |  Primitives.Single |  Primitives.Double | Primitives.Decimal,
         /* Int16    */  Primitives.Int16   | Primitives.Int32  | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
         /* UInt16   */  Primitives.UInt16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
         /* Int32    */  Primitives.Int32   | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
