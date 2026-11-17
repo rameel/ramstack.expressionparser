@@ -30,3 +30,6 @@ Concat(new [] {"1", Convert(2, Object), "3", Convert(4, Object), Convert(5, Obje
 
 "1" + 2 + "3" + (4 + 5) + 6
 Concat(new [] {"1", Convert(2, Object), "3", Convert((4 + 5), Object), Convert(6, Object)})
+
+string.Concat("x") + "y"
+Concat(Concat("x"), "y")
