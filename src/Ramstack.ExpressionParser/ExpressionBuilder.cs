@@ -407,7 +407,25 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             switch (expr.UnaryType)
             {
                 case UnaryType.Not:
-                    return Expression.Not(operand);
+                    //
+                    // Expression.Not performs a bitwise complement on integers and falls back to op_OnesComplement
+                    // when a type does not define op_LogicalNot, so '!' would silently work as '~'.
+                    // Allow only the logical negation, as C# does. For a nullable operand,
+                    // Expression.Not lifts the negation of the underlying type.
+                    //
+                    var nonNullableType = Nullable.GetUnderlyingType(operandType) ?? operandType;
+                    if (nonNullableType == typeof(bool))
+                        return Expression.Not(operand);
+
+                    var logicalNot = nonNullableType.GetMethod(
+                        "op_LogicalNot",
+                        BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy,
+                        [nonNullableType]);
+
+                    if (logicalNot is null)
+                        Error.NonApplicableUnaryOperator(expr, operandType);
+
+                    return Expression.Not(operand, logicalNot);
 
                 case UnaryType.Negate:
                     return Expression.Negate(operand);

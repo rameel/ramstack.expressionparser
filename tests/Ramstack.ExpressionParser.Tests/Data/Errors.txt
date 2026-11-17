@@ -136,3 +136,18 @@ Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.I
 
 -1ul
 Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
+
+#######################################
+# ! operator
+
+!1
+Unary operator '!' cannot be applied to operand of type 'System.Int32'.
+
+!1L
+Unary operator '!' cannot be applied to operand of type 'System.Int64'.
+
+!byte.MaxValue
+Unary operator '!' cannot be applied to operand of type 'System.Byte'.
+
+!DayOfWeek.Friday
+Unary operator '!' cannot be applied to operand of type 'System.DayOfWeek'.

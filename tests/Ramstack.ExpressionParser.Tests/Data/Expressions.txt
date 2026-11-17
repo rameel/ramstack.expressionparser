@@ -491,3 +491,15 @@ Convert(1, Int64)
 
 -1L
 -1
+
+#######################################
+# ! operator
+
+!true
+Not(True)
+
+!(1 > 0)
+Not((1 > 0))
+
+!!false
+Not(Not(False))
