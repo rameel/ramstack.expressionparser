@@ -160,19 +160,26 @@ partial class ExpressionBuilder
                 Debug.Assert(parameter.ParameterType.IsSZArray);
                 Debug.Assert(parameter.ParameterType.GetElementType() is not null);
 
-                var paramArray = new List<Expression>();
-                var paramArrayType = parameter.ParameterType.GetElementType()!;
+                //
+                // When the only argument for the parameter array converts to the array type,
+                // the call is in its normal form, and the argument is passed as the array itself, as in C#.
+                // MethodResolver selects the normal form under the same condition.
+                //
+                if (i != args.Count - 1 || !parameter.ParameterType.IsAssignableFrom(arg.Type))
+                {
+                    var paramArray = new List<Expression>();
+                    var paramArrayType = parameter.ParameterType.GetElementType()!;
 
-                for (; i < args.Count; i++)
-                    paramArray.Add(
-                        Convert(args[i], paramArrayType));
+                    for (; i < args.Count; i++)
+                        paramArray.Add(Convert(args[i], paramArrayType));
 
-                list.Add(
-                    Expression.NewArrayInit(
-                        paramArrayType,
-                        paramArray));
+                    list.Add(
+                        Expression.NewArrayInit(
+                            paramArrayType,
+                            paramArray));
 
-                break;
+                    break;
+                }
             }
 
             list.Add(Convert(arg, parameter.ParameterType));
