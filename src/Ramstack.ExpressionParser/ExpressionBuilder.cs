@@ -130,14 +130,22 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                                 argumentTypes.Add(item.Type);
                             }
                         }
-                        else
+                        else if (list[0] is NewArrayExpression { NodeType: ExpressionType.NewArrayInit } array)
                         {
-                            var array = (NewArrayExpression)list[0];
                             foreach (var item in array.Expressions)
                             {
                                 arguments.Add(item);
                                 argumentTypes.Add(item.Type);
                             }
+                        }
+                        else
+                        {
+                            //
+                            // The only argument is not an array of operands created for the expanded form,
+                            // as in string.Concat(value) or string.Concat(array), so the call itself is the operand.
+                            //
+                            arguments.Add(e);
+                            argumentTypes.Add(e.Type);
                         }
                     }
                     else

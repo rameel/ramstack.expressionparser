@@ -133,6 +133,23 @@ public class ExpressionParserTest
     public void Evaluate_NegatedUInt32_ReturnsNegatedInt64(string expression, long expected) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<long>().And.EqualTo(expected));
 
+    [TestCase("Sum(Numbers)", 6)]
+    [TestCase("Count(Words)", 2)]
+    [TestCase("IsWords(Words)", true)]
+    [TestCase("""string.Join(",", Words)""", "a,b")]
+    [TestCase("string.Concat(Objects)", "x1")]
+    [TestCase("""string.Concat(Objects) + "!" """, "x1!")]
+    public void Evaluate_ArrayForParamArray_PassesArray(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.EqualTo(expected));
+
+    [TestCase("Sum(1, 2, 3)", 6)]
+    [TestCase("Sum(5)", 5)]
+    [TestCase("Count(Numbers)", 1)]
+    [TestCase("Count(Words, Words)", 2)]
+    [TestCase("""string.Join(",", "a", "b")""", "a,b")]
+    public void Evaluate_ElementsForParamArray_CreatesArray(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.EqualTo(expected));
+
     [TestCase("!Flag", false)]
     [TestCase("!NullableFlag", true)]
     [TestCase("!WithLogicalNot", true)]
@@ -355,5 +372,16 @@ public class ExpressionParserTest
         public static string Pick(char _) => "char";
         public static string Pick(int _) => "int";
         public static string OnlyChar(char _) => "char";
+    }
+
+    public class ParamArrayContext
+    {
+        public string[] Words { get; } = ["a", "b"];
+        public int[] Numbers { get; } = [1, 2, 3];
+        public object[] Objects { get; } = ["x", 1];
+
+        public static int Sum(params int[] values) => values.Sum();
+        public static int Count(params object[] values) => values.Length;
+        public bool IsWords(params string[] values) => ReferenceEquals(values, Words);
     }
 }
