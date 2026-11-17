@@ -145,6 +145,20 @@ public class ExpressionParserTest
             $"Unary operator '!' cannot be applied to operand of type '{typeof(OnesComplementOperand)}'."));
     }
 
+    [TestCase("Pick(97 :> byte)", "int")]
+    [TestCase("Pick('a')", "char")]
+    public void Evaluate_ByteArgument_DoesNotSelectCharOverload(string expression, string expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new OverloadContext()), Is.EqualTo(expected));
+
+    [Test]
+    public void Parse_ByteArgumentForCharParameter_ReturnsError()
+    {
+        var parameter = Expression.Parameter(typeof(OverloadContext), "c");
+        var result = ExpressionParser.Parse("OnlyChar(97 :> byte)", new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+    }
+
     [TestCaseSource(nameof(ErrorsSource))]
     public void ParseErrorExpression(string expression, string expected)
     {
@@ -327,5 +341,12 @@ public class ExpressionParserTest
     public class OnesComplementOperand
     {
         public static bool operator ~(OnesComplementOperand _) => true;
+    }
+
+    public class OverloadContext
+    {
+        public static string Pick(char _) => "char";
+        public static string Pick(int _) => "int";
+        public static string OnlyChar(char _) => "char";
     }
 }

@@ -25,6 +25,10 @@ public class TypeUtilsTest
     public void CanConvertPrimitive_ExplicitDecimalConversion_ReturnsFalse(Type source, Type target) =>
         Assert.That(TypeUtils.CanConvertPrimitive(source, target), Is.False);
 
+    [Test]
+    public void CanConvertPrimitive_ByteToChar_ReturnsFalse() =>
+        Assert.That(TypeUtils.CanConvertPrimitive(typeof(byte), typeof(char)), Is.False);
+
     [TestCase(typeof(int), typeof(DayOfWeek))]
     [TestCase(typeof(DayOfWeek), typeof(int))]
     [TestCase(typeof(DayOfWeek), typeof(DayOfWeek))]
