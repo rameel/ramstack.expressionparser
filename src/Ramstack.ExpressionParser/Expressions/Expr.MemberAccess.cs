@@ -6,7 +6,8 @@ partial class Expr
     /// Represents a member access operation in an expression tree,
     /// such as accessing a field or property like <c>obj.Property</c>.
     /// </summary>
-    public sealed class MemberAccess(Expr expression, Expr member) : Expr(ExprKind.MemberAccess)
+    public sealed class MemberAccess(Expr expression, Expr member)
+        : Expr(ExprKind.MemberAccess, Math.Max(expression.Depth, member.Depth) + 1)
     {
         /// <summary>
         /// Gets the expression whose member is being accessed.

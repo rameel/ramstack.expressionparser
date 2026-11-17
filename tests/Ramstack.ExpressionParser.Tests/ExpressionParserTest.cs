@@ -1,5 +1,8 @@
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Runtime.ExceptionServices;
+
+using Ramstack.Parsing.Expressions;
 
 namespace Ramstack.Parsing;
 
@@ -31,6 +34,72 @@ public class ExpressionParserTest
             list.Add(["""ulong.MaxValue""", ulong.MaxValue]);
             list.Add(["""Guid.Empty""", Guid.Empty]);
             return list;
+        }
+    }
+
+    private static IEnumerable<TestCaseData> DeepExpressionSource
+    {
+        get
+        {
+            const int Count = 200_000;
+
+            yield return Case("prefix operators", new string('-', Count) + "1");
+            yield return Case("casts", "1" + Repeat(":int", Count));
+            yield return Case("binary operators", string.Join(" + ", Enumerable.Repeat("1", Count)));
+            yield return Case("null-coalescing operators", string.Join(" ?? ", Enumerable.Repeat("\"a\"", Count)));
+            yield return Case("member access", "\"a\"" + Repeat(".Length.ToString()", Count));
+            yield return Case("indexers", "\"a\"" + Repeat("[0].ToString()", Count));
+            yield return Case("calls", "\"a\"" + Repeat("()", Count));
+            yield return Case("calls on a member", "\"a\".ToString" + Repeat("()", Count));
+
+            static TestCaseData Case(string name, string expression) =>
+                new TestCaseData(expression).SetArgDisplayNames(name);
+
+            static string Repeat(string value, int count) =>
+                string.Concat(Enumerable.Repeat(value, count));
+        }
+    }
+
+    private static IEnumerable<TestCaseData> DeepNestingSource
+    {
+        get
+        {
+            const int Count = 200_000;
+
+            foreach (var stackSize in new[] { 256 * 1024, 1024 * 1024 })
+            {
+                yield return Case("parentheses", new string('(', Count) + "1" + new string(')', Count), stackSize);
+                yield return Case("arguments", Repeat("f(", Count) + "1" + Repeat(")", Count), stackSize);
+                yield return Case("indexers", Repeat("x[", Count) + "1" + Repeat("]", Count), stackSize);
+                yield return Case("conditional true branches", Repeat("1 > 0 ? ", Count) + "1" + Repeat(" : 1", Count), stackSize);
+                yield return Case("conditional false branches", Repeat("1 > 0 ? 1 : ", Count) + "1", stackSize);
+            }
+
+            static TestCaseData Case(string name, string expression, int stackSize) =>
+                new TestCaseData(expression, stackSize).SetArgDisplayNames(name, $"{stackSize / 1024} KB");
+
+            static string Repeat(string value, int count) =>
+                string.Concat(Enumerable.Repeat(value, count));
+        }
+    }
+
+    private static IEnumerable<TestCaseData> StackBudgetSource
+    {
+        get
+        {
+            yield return Case("prefix operators", new string('-', 255) + "1");
+            yield return Case("casts", "1" + Repeat(":int", 255));
+            yield return Case("binary operators", string.Join(" + ", Enumerable.Repeat("1", 256)));
+            yield return Case("null-coalescing operators", string.Join(" ?? ", Enumerable.Repeat("\"a\"", 256)));
+            yield return Case("indexers and calls", "\"abc\"" + Repeat("[0].ToString()", 85));
+            yield return Case("conditional operators", Repeat("1 > 0 ? 1 : ", 254) + "1");
+            yield return Case("parentheses", new string('(', 150) + "1" + new string(')', 150));
+
+            static TestCaseData Case(string name, string expression) =>
+                new TestCaseData(expression).SetArgDisplayNames(name);
+
+            static string Repeat(string value, int count) =>
+                string.Concat(Enumerable.Repeat(value, count));
         }
     }
 
@@ -66,6 +135,76 @@ public class ExpressionParserTest
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
+    [Test]
+    public void MaxDepthTest()
+    {
+        //
+        // The literal is the first level, and each operator adds one more level.
+        //
+        Assert.That(ExpressionParser.Parse(new string('-', 255) + "1").Success, Is.True);
+        Assert.That(ExpressionParser.Parse(new string('-', 256) + "1").ToString(),
+            Is.EqualTo("(1:258) The expression exceeds the maximum depth of 256."));
+
+        Assert.That(ExpressionParser.Parse(string.Join("+", Enumerable.Repeat("1", 256))).Success, Is.True);
+        Assert.That(ExpressionParser.Parse(string.Join("+", Enumerable.Repeat("1", 257))).Success, Is.False);
+    }
+
+    [TestCaseSource(nameof(DeepExpressionSource))]
+    public void DeepExpressionTest(string expression)
+    {
+        var result = ExpressionParser.Parse(expression, new DefaultBinder());
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.EndWith("The expression exceeds the maximum depth of 256."));
+    }
+
+    [TestCaseSource(nameof(DeepNestingSource))]
+    public void DeepNestingTest(string expression, int stackSize)
+    {
+        var result = RunOnThread(stackSize, () => ExpressionParser.Parse(expression, new DefaultBinder()));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.EndWith("The expression is nested too deeply."));
+    }
+
+    [TestCaseSource(nameof(StackBudgetSource))]
+    public void StackBudgetTest(string expression)
+    {
+        //
+        // The default stack of a thread on Windows is 1 MB, so the expressions at the maximum depth
+        // and moderately nested parentheses must be parsed and built on such a stack.
+        //
+        var result = RunOnThread(1024 * 1024, () => ExpressionParser.Parse(expression, new DefaultBinder()));
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+    }
+
+    [Test]
+    public void DeepTreeBuildTest()
+    {
+        //
+        // The parser does not produce such a tree, but the tree can be created directly.
+        //
+        Expr expr = new Expr.Literal(1);
+        for (var i = 0; i < 100_000; i++)
+            expr = new Expr.Unary(new Identifier("-"), UnaryType.Negate, expr);
+
+        var builder = new ExpressionBuilder(new DefaultBinder());
+        var exception = RunOnThread(1024 * 1024, () =>
+        {
+            try
+            {
+                builder.Visit(expr);
+                return null;
+            }
+            catch (ParseErrorException e)
+            {
+                return e;
+            }
+        });
+
+        Assert.That(exception?.Message, Is.EqualTo("The expression is nested too deeply."));
+    }
+
     [TestCaseSource(nameof(ExpressionSource))]
     public void ParseExpressionTest(string source, string expected)
     {
@@ -78,6 +217,30 @@ public class ExpressionParserTest
     {
         var result = ExpressionParser.Parse(source, new DefaultBinder());
         Assert.That(result.ToString(), Is.EqualTo(expected));
+    }
+
+    private static T RunOnThread<T>(int maxStackSize, Func<T> func)
+    {
+        var result = default(T);
+        var exception = default(ExceptionDispatchInfo);
+
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                result = func();
+            }
+            catch (Exception e)
+            {
+                exception = ExceptionDispatchInfo.Capture(e);
+            }
+        }, maxStackSize);
+
+        thread.Start();
+        thread.Join();
+
+        exception?.Throw();
+        return result!;
     }
 
     private static List<object[]> GetResource(string resourceName)

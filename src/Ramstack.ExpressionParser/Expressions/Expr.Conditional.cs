@@ -5,7 +5,8 @@ partial class Expr
     /// <summary>
     /// Represents a conditional (ternary) expression in an expression tree.
     /// </summary>
-    public sealed class Conditional(Expr test, Expr ifTrue, Expr ifFalse) : Expr(ExprKind.Conditional)
+    public sealed class Conditional(Expr test, Expr ifTrue, Expr ifFalse)
+        : Expr(ExprKind.Conditional, Math.Max(test.Depth, Math.Max(ifTrue.Depth, ifFalse.Depth)) + 1)
     {
         /// <summary>
         /// Gets the condition expression evaluated to determine the outcome.

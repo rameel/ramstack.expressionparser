@@ -5,7 +5,8 @@ partial class Expr
     /// <summary>
     /// Represents an indexing operation in an expression tree, such as accessing an array or a parameterized property.
     /// </summary>
-    public sealed class Indexer(Expr expression, IReadOnlyList<Expr> parameters) : Expr(ExprKind.Index)
+    public sealed class Indexer(Expr expression, IReadOnlyList<Expr> parameters)
+        : Expr(ExprKind.Index, ComputeDepth(expression, parameters))
     {
         /// <summary>
         /// Gets the expression being indexed, such as an array or object with an indexer.
