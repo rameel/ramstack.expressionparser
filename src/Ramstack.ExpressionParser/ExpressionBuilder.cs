@@ -481,7 +481,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (condition is null)
                 Error.MissingImplicitConversion(test.Type, typeof(bool));
 
-            return Expression.Condition(condition, ifTrue, ifFalse);
+            var type = ApplyConditionalConversions(expr, ref ifTrue, ref ifFalse);
+            return Expression.Condition(condition, ifTrue, ifFalse, type);
         }
         catch (Exception e) when (e is not ParseErrorException)
         {

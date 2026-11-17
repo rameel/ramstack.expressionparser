@@ -65,6 +65,19 @@ internal static class Error
     }
 
     /// <summary>
+    /// Throws a <see cref="ParseErrorException"/> indicating the conditional operator cannot be applied to its branches
+    /// because they have no common type.
+    /// </summary>
+    /// <param name="ifTrue">The <see cref="Type"/> of the true branch, or <see langword="null" /> for the null literal.</param>
+    /// <param name="ifFalse">The <see cref="Type"/> of the false branch, or <see langword="null" /> for the null literal.</param>
+    [DoesNotReturn]
+    public static void NonApplicableConditionalOperator(Type? ifTrue, Type? ifFalse)
+    {
+        var message = $"Operator '?:' cannot be applied to operands of type '{ifTrue?.ToString() ?? "<null>"}' and '{ifFalse?.ToString() ?? "<null>"}'.";
+        throw new ParseErrorException(message);
+    }
+
+    /// <summary>
     /// Throws a <see cref="ParseErrorException"/> indicating an implicit type conversion is not possible.
     /// </summary>
     /// <param name="operandType">The source <see cref="Type"/> of the operand.</param>

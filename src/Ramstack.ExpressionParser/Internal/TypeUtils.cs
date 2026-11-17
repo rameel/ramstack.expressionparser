@@ -13,15 +13,15 @@ public static class TypeUtils
         /* Object   */  0,
         /* DBNull   */  0,
         /* Boolean  */  Primitives.Boolean,
-        /* Char     */  Primitives.Char    | Primitives.UInt16 | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single |  Primitives.Double,
-        /* SByte    */  Primitives.SByte   | Primitives.Int16  | Primitives.Int32  | Primitives.Int64  | Primitives.Single | Primitives.Double,
-        /* Byte     */  Primitives.Byte    | Primitives.Char   | Primitives.UInt16 | Primitives.Int16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 |  Primitives.Int64 |  Primitives.Single |  Primitives.Double,
-        /* Int16    */  Primitives.Int16   | Primitives.Int32  | Primitives.Int64  | Primitives.Single | Primitives.Double,
-        /* UInt16   */  Primitives.UInt16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single | Primitives.Double,
-        /* Int32    */  Primitives.Int32   | Primitives.Int64  | Primitives.Single | Primitives.Double,
-        /* UInt32   */  Primitives.UInt32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single | Primitives.Double,
-        /* Int64    */  Primitives.Int64   | Primitives.Single | Primitives.Double,
-        /* UInt64   */  Primitives.UInt64  | Primitives.Single | Primitives.Double,
+        /* Char     */  Primitives.Char    | Primitives.UInt16 | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single |  Primitives.Double | Primitives.Decimal,
+        /* SByte    */  Primitives.SByte   | Primitives.Int16  | Primitives.Int32  | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
+        /* Byte     */  Primitives.Byte    | Primitives.Char   | Primitives.UInt16 | Primitives.Int16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 |  Primitives.Int64 |  Primitives.Single |  Primitives.Double | Primitives.Decimal,
+        /* Int16    */  Primitives.Int16   | Primitives.Int32  | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
+        /* UInt16   */  Primitives.UInt16  | Primitives.UInt32 | Primitives.Int32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
+        /* Int32    */  Primitives.Int32   | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
+        /* UInt32   */  Primitives.UInt32  | Primitives.UInt64 | Primitives.Int64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
+        /* Int64    */  Primitives.Int64   | Primitives.Single | Primitives.Double | Primitives.Decimal,
+        /* UInt64   */  Primitives.UInt64  | Primitives.Single | Primitives.Double | Primitives.Decimal,
         /* Single   */  Primitives.Single  | Primitives.Double,
         /* Double   */  Primitives.Double,
         /* Decimal  */  Primitives.Decimal,
@@ -114,7 +114,11 @@ public static class TypeUtils
     /// </returns>
     public static bool CanConvertPrimitive(Type source, Type target)
     {
-        if (source.IsEnum)
+        //
+        // Type.GetTypeCode returns the code of the underlying type for an enum,
+        // so without this check a number would convert to any enum and back.
+        //
+        if (source.IsEnum || target.IsEnum)
             return false;
 
         if ((source == typeof(IntPtr) && target == typeof(IntPtr))

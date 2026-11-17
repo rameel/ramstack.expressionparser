@@ -52,6 +52,99 @@ partial class ExpressionBuilder
         return null;
     }
 
+    /// <summary>
+    /// Converts the branches of a conditional expression to their common type.
+    /// </summary>
+    /// <remarks>
+    /// As in C#, the common type is the type of one of the branches, so it is <see cref="object"/> only
+    /// when a branch is of that type, for example after an explicit conversion. The null literal takes the type
+    /// of the other branch if that type accepts <see langword="null" />.
+    /// </remarks>
+    /// <param name="expr">The conditional expression.</param>
+    /// <param name="ifTrue">The expression of the true branch.</param>
+    /// <param name="ifFalse">The expression of the false branch.</param>
+    /// <returns>
+    /// The common type of the branches.
+    /// </returns>
+    private static Type ApplyConditionalConversions(Expr.Conditional expr, ref Expression ifTrue, ref Expression ifFalse)
+    {
+        var isTrueNull = IsNullLiteral(expr.IfTrue);
+        var isFalseNull = IsNullLiteral(expr.IfFalse);
+
+        if (isTrueNull || isFalseNull)
+        {
+            if (!isFalseNull && CanBeNull(ifFalse.Type))
+            {
+                ifTrue = Expression.Constant(null, ifFalse.Type);
+                return ifFalse.Type;
+            }
+
+            if (!isTrueNull && CanBeNull(ifTrue.Type))
+            {
+                ifFalse = Expression.Constant(null, ifTrue.Type);
+                return ifTrue.Type;
+            }
+
+            Error.NonApplicableConditionalOperator(
+                isTrueNull ? null : ifTrue.Type,
+                isFalseNull ? null : ifFalse.Type);
+        }
+
+        if (ifTrue.Type == ifFalse.Type)
+            return ifTrue.Type;
+
+        var trueToFalse = ApplyBranchConversion(ifTrue, ifFalse.Type);
+        var falseToTrue = ApplyBranchConversion(ifFalse, ifTrue.Type);
+
+        if (trueToFalse is not null && falseToTrue is null)
+        {
+            ifTrue = trueToFalse;
+            return ifFalse.Type;
+        }
+
+        if (falseToTrue is not null && trueToFalse is null)
+        {
+            ifFalse = falseToTrue;
+            return ifTrue.Type;
+        }
+
+        Error.NonApplicableConditionalOperator(ifTrue.Type, ifFalse.Type);
+        return null!;
+
+        static bool IsNullLiteral(Expr expr)
+        {
+            while (expr is Expr.Parenthesized parenthesized)
+                expr = parenthesized.Expression;
+
+            return expr is Expr.Literal { Value: null };
+        }
+
+        static bool CanBeNull(Type type) =>
+            !type.IsValueType || type.IsNullable();
+    }
+
+    /// <summary>
+    /// Applies an implicit conversion of a branch of a conditional expression to the type of the other branch.
+    /// </summary>
+    /// <param name="expression">The expression of the branch.</param>
+    /// <param name="conversionType">The type of the other branch.</param>
+    /// <returns>
+    /// The converted expression, or <see langword="null" /> if no implicit conversion exists.
+    /// </returns>
+    private static Expression? ApplyBranchConversion(Expression expression, Type conversionType)
+    {
+        //
+        // ApplyImplicitConversion does not box values, so handle the boxing conversion here,
+        // for example of a number to a branch explicitly converted to object.
+        //
+        if (expression.Type.IsValueType
+            && !conversionType.IsValueType
+            && conversionType.IsAssignableFrom(expression.Type))
+            return Expression.Convert(expression, conversionType);
+
+        return ApplyImplicitConversion(expression, conversionType);
+    }
+
     private static List<Expression> CreateInjectingArguments(MethodInfo method, IReadOnlyList<Expression> args)
     {
         var parameters = method.GetParameters();
