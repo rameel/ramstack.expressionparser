@@ -30,3 +30,8 @@ csharp_indent_labels = no_change
 
 # IDE0079: Remove unnecessary suppression
 dotnet_remove_unnecessary_suppression_exclusions = category:ReSharper
+
+[tests/**/*.cs]
+# CA1707: Identifiers should not contain underscores
+# Test names follow the Method_Condition_ExpectedResult convention from CONTRIBUTING.md
+dotnet_diagnostic.CA1707.severity = none
