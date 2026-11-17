@@ -124,6 +124,25 @@ public class ExpressionParserTest
     public void EvaluateExpression(string expression, object result) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.EqualTo(result));
 
+    [TestCase("!Flag", false)]
+    [TestCase("!NullableFlag", true)]
+    [TestCase("!WithLogicalNot", true)]
+    [TestCase("!WithInheritedLogicalNot", true)]
+    [TestCase("!NullableWithLogicalNot", true)]
+    public void LogicalNotTest(string expression, bool expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new LogicalNotContext()), Is.EqualTo(expected));
+
+    [Test]
+    public void LogicalNotOnOnesComplementOnlyTest()
+    {
+        var parameter = Expression.Parameter(typeof(LogicalNotContext), "c");
+        var result = ExpressionParser.Parse("!WithOnesComplement", new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(
+            $"Unary operator '!' cannot be applied to operand of type '{typeof(OnesComplementOperand)}'."));
+    }
+
     [TestCaseSource(nameof(ErrorsSource))]
     public void ParseErrorExpression(string expression, string expected)
     {
@@ -279,5 +298,32 @@ public class ExpressionParserTest
     {
         public string? Name { get; set; }
         public string? LastName { get; set; }
+    }
+
+    public class LogicalNotContext
+    {
+        public bool Flag { get; } = true;
+        public bool? NullableFlag { get; } = false;
+        public LogicalNotOperand WithLogicalNot { get; } = new();
+        public DerivedLogicalNotOperand WithInheritedLogicalNot { get; } = new();
+        public LogicalNotStruct? NullableWithLogicalNot { get; } = new LogicalNotStruct();
+        public OnesComplementOperand WithOnesComplement { get; } = new();
+    }
+
+    public class LogicalNotOperand
+    {
+        public static bool operator !(LogicalNotOperand _) => true;
+    }
+
+    public class DerivedLogicalNotOperand : LogicalNotOperand;
+
+    public struct LogicalNotStruct
+    {
+        public static bool operator !(LogicalNotStruct _) => true;
+    }
+
+    public class OnesComplementOperand
+    {
+        public static bool operator ~(OnesComplementOperand _) => true;
     }
 }
