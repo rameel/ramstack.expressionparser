@@ -163,6 +163,12 @@ public class ExpressionParserTest
     public void Evaluate_ElementsForParamArray_CreatesArray(string expression, object expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.EqualTo(expected));
 
+    [TestCase("Doubler(2)", 4)]
+    [TestCase("Doubler.Invoke(2)", 4)]
+    [TestCase("Doubler.ToString()", "System.Func`2[System.Int32,System.Int32]")]
+    public void Evaluate_DelegateMember_CallsDelegateAndItsMethods(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new DelegateContext()), Is.EqualTo(expected));
+
     [TestCase("Defaults()", "1 Monday True null")]
     [TestCase("""Defaults(5, DayOfWeek.Friday, Guid.NewGuid(), "a")""", "5 Friday False a")]
     [TestCase("Mixed(1)", "1 2 0")]
@@ -489,6 +495,11 @@ public class ExpressionParserTest
         public static int Sum(params int[] values) => values.Sum();
         public static int Count(params object[] values) => values.Length;
         public bool IsWords(params string[] values) => ReferenceEquals(values, Words);
+    }
+
+    public class DelegateContext
+    {
+        public Func<int, int> Doubler { get; } = x => x * 2;
     }
 
     public class OptionalContext
