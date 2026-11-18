@@ -365,11 +365,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (memberInfo is null)
                 Error.CannotResolveSymbol(m.Value);
 
-            if (memberInfo.DeclaringType == typeof(Array) && memberInfo.Name == nameof(Array.Length))
-            {
-                Debug.Assert(expression is not null);
+            if (expression?.Type.IsSZArray == true && memberInfo.DeclaringType == typeof(Array) && memberInfo.Name == nameof(Array.Length))
                 return Expression.ArrayLength(expression);
-            }
 
             return Expression.MakeMemberAccess(expression, memberInfo);
         }
