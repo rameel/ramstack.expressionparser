@@ -127,6 +127,24 @@ public class ExpressionParserTest
     public void EvaluateExpression(string expression, object result) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.EqualTo(result));
 
+    [Test]
+    public void Evaluate_ContextOfDerivedType_BindsMembersOfDeclaredType()
+    {
+        var context = new ValueContext();
+
+        Assert.That(ExpressionParser.Evaluate<IValueContext, int>("Value", context), Is.EqualTo(1));
+        Assert.That(ExpressionParser.Evaluate<object, string>("ToString()", context), Is.EqualTo(context.ToString()));
+    }
+
+    [Test]
+    public void Evaluate_MemberOfRuntimeContextTypeOnly_Throws()
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            ExpressionParser.Evaluate<IValueContext, int>("Extra", new ValueContext()));
+
+        Assert.That(exception!.Message, Is.EqualTo("Cannot resolve symbol 'Extra'."));
+    }
+
     [TestCase("-1u", -1L)]
     [TestCase("-4294967295u", -4294967295L)]
     [TestCase("-3000000000", -3000000000L)]
@@ -444,6 +462,17 @@ public class ExpressionParserTest
     {
         public string? Name { get; set; }
         public string? LastName { get; set; }
+    }
+
+    public interface IValueContext
+    {
+        int Value { get; }
+    }
+
+    public class ValueContext : IValueContext
+    {
+        public int Value { get; } = 1;
+        public int Extra { get; } = 2;
     }
 
     public class LogicalNotContext
