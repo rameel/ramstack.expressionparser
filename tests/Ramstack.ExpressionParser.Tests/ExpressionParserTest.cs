@@ -183,6 +183,24 @@ public class ExpressionParserTest
         Assert.That(value, Is.EqualTo(6));
     }
 
+    [TestCase("Missing ?? StringOnly", "string")]
+    [TestCase("Missing ?? StringAndBool", "string")]
+    [TestCase("""Flag ? StringOnly : "x" """, "string")]
+    [TestCase("StringAndBool && Flag", true)]
+    public void Evaluate_UserDefinedImplicitConversion_UsesOperatorForTargetType(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new ConversionContext()), Is.EqualTo(expected));
+
+    [Test]
+    public void Parse_NoUserDefinedImplicitConversionToTargetType_ReturnsError()
+    {
+        var parameter = Expression.Parameter(typeof(ConversionContext), "c");
+        var result = ExpressionParser.Parse("Missing ?? BoolOnly", new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(
+            $"Operator '??' cannot be applied to operands of type 'System.String' and '{typeof(ConvertibleToBool)}'."));
+    }
+
     [TestCase("Defaults()", "1 Monday True null")]
     [TestCase("""Defaults(5, DayOfWeek.Friday, Guid.NewGuid(), "a")""", "5 Friday False a")]
     [TestCase("Mixed(1)", "1 2 0")]
@@ -519,6 +537,31 @@ public class ExpressionParserTest
     public static class StaticDelegates
     {
         public static Func<int, int> Tripler { get; } = x => x * 3;
+    }
+
+    public class ConversionContext
+    {
+        public string? Missing { get; }
+        public bool Flag { get; } = true;
+        public ConvertibleToString StringOnly { get; } = new();
+        public ConvertibleToStringAndBool StringAndBool { get; } = new();
+        public ConvertibleToBool BoolOnly { get; } = new();
+    }
+
+    public class ConvertibleToString
+    {
+        public static implicit operator string(ConvertibleToString _) => "string";
+    }
+
+    public class ConvertibleToStringAndBool
+    {
+        public static implicit operator string(ConvertibleToStringAndBool _) => "string";
+        public static implicit operator bool(ConvertibleToStringAndBool _) => true;
+    }
+
+    public class ConvertibleToBool
+    {
+        public static implicit operator bool(ConvertibleToBool _) => true;
     }
 
     public class OptionalContext
