@@ -217,6 +217,21 @@ public class ExpressionParserTest
         Assert.That(result.Success, Is.False);
     }
 
+    [Test]
+    public void Evaluate_TypeWithWriteOnlyProperties_UsesReadableIndexer() =>
+        Assert.That(ExpressionParser.Evaluate("Mixed[1]", new IndexerContext()), Is.EqualTo("item 1"));
+
+    [Test]
+    public void Parse_TypeWithWriteOnlyIndexer_ReturnsNonIndexingError()
+    {
+        var parameter = Expression.Parameter(typeof(IndexerContext), "c");
+        var result = ExpressionParser.Parse("WriteOnly[1]", new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(
+            $"Cannot apply indexing with [] to an expression of type '{typeof(WriteOnlyIndexer)}'."));
+    }
+
     [TestCaseSource(nameof(ErrorsSource))]
     public void ParseErrorExpression(string expression, string expected)
     {
@@ -424,6 +439,26 @@ public class ExpressionParserTest
 
         public static string ExpandedBothDefaults(int a, int b = 0, params int[] rest) => "(int, int = 0, params int[])";
         public static string ExpandedBothDefaults(int a, int b = 0, int c = 0, params int[] rest) => "(int, int = 0, int = 0, params int[])";
+    }
+
+    public class IndexerContext
+    {
+        public MixedAccessors Mixed { get; } = new();
+        public WriteOnlyIndexer WriteOnly { get; } = new();
+    }
+
+    public class MixedAccessors
+    {
+        private string? _name;
+
+        public string this[int index] => $"item {index}";
+        public string this[string key] { set { } }
+        public string Name { set => _name = value; }
+    }
+
+    public class WriteOnlyIndexer
+    {
+        public string this[int index] { set { } }
     }
 
     public class ParamArrayContext

@@ -215,8 +215,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             foreach (var pi in self.Type.GetProperties())
             {
                 var mi = pi.GetMethod;
-                if (mi?.GetParameters().Length != 0)
-                    methods.Add(mi!);
+                if (mi?.GetParameters().Length > 0)
+                    methods.Add(mi);
             }
 
             if (methods.Count == 0)
@@ -225,7 +225,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             var method = (MethodInfo?)MethodResolver.ResolveMethod(methods.ToArray(), parameterTypes);
             if (method is null)
             {
-                var list = self.Type.GetProperties().Where(p => p.GetMethod?.GetParameters().Length != 0);
+                var list = self.Type.GetProperties().Where(p => p.GetMethod?.GetParameters().Length > 0);
                 Error.AmbiguousMatch(list);
             }
 
