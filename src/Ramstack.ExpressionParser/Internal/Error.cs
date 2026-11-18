@@ -101,6 +101,30 @@ internal static class Error
     }
 
     /// <summary>
+    /// Throws a <see cref="ParseErrorException"/> indicating a property or indexer cannot be read
+    /// because it has no get accessor.
+    /// </summary>
+    /// <param name="property">The <see cref="PropertyInfo"/> of the property or indexer.</param>
+    [DoesNotReturn]
+    public static void MissingGetAccessor(PropertyInfo property)
+    {
+        var message = $"The property or indexer '{FormatProperty(property)}' cannot be used in this context because it lacks the get accessor.";
+        throw new ParseErrorException(message);
+    }
+
+    /// <summary>
+    /// Throws a <see cref="ParseErrorException"/> indicating a property or indexer cannot be read
+    /// because its get accessor is not public.
+    /// </summary>
+    /// <param name="property">The <see cref="PropertyInfo"/> of the property or indexer.</param>
+    [DoesNotReturn]
+    public static void InaccessibleGetAccessor(PropertyInfo property)
+    {
+        var message = $"The property or indexer '{FormatProperty(property)}' cannot be used in this context because the get accessor is inaccessible.";
+        throw new ParseErrorException(message);
+    }
+
+    /// <summary>
     /// Throws a <see cref="ParseErrorException"/> indicating an ambiguous match among multiple candidates.
     /// </summary>
     /// <param name="candidates">The collection of <see cref="MemberInfo"/> objects representing ambiguous matches.</param>
@@ -119,4 +143,21 @@ internal static class Error
     [DoesNotReturn]
     public static void Throw(string? message) =>
         throw new ParseErrorException(message);
+
+    /// <summary>
+    /// Formats a property as its declaring type and name, or an indexer as its declaring type and parameter types,
+    /// as in <c>T.Name</c> or <c>T.this[System.Int32]</c>.
+    /// </summary>
+    /// <param name="property">The <see cref="PropertyInfo"/> of the property or indexer.</param>
+    /// <returns>
+    /// The formatted name.
+    /// </returns>
+    private static string FormatProperty(PropertyInfo property)
+    {
+        var parameters = property.GetIndexParameters();
+
+        return parameters.Length == 0
+            ? $"{property.DeclaringType}.{property.Name}"
+            : $"{property.DeclaringType}.this[{string.Join(", ", parameters.Select(p => p.ParameterType))}]";
+    }
 }
