@@ -26,7 +26,6 @@ public class ExpressionParserTest
             var list = new List<object[]>();
             list.Add(["""version.parse("1.2.3.4")""", Version.Parse("1.2.3.4")]);
             list.Add(["""Math.Max(1d, 15)""", 15d]);
-            list.Add(["""DateTime.Today""", DateTime.Today]);
             list.Add(["""sbyte.MinValue""", sbyte.MinValue]);
             list.Add(["""-0x80000000""", int.MinValue]);
             list.Add([""" 0x80000000""", 0x80000000]);
@@ -175,6 +174,19 @@ public class ExpressionParserTest
     [TestCaseSource(nameof(EvaluatesSource))]
     public void EvaluateExpression(string expression, object result) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.EqualTo(result));
+
+    [Test]
+    public void Evaluate_DateTimeToday_ReturnsCurrentDate()
+    {
+        //
+        // The date can change during evaluation, so the result is compared with the dates before and after it.
+        //
+        var before = DateTime.Today;
+        var result = ExpressionParser.Evaluate("DateTime.Today");
+        var after = DateTime.Today;
+
+        Assert.That(result, Is.EqualTo(before).Or.EqualTo(after));
+    }
 
     [Test]
     public void Evaluate_ContextOfDerivedType_BindsMembersOfDeclaredType()
