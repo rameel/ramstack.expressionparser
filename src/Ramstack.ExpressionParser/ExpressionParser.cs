@@ -156,9 +156,13 @@ public static partial class ExpressionParser
     /// <returns>
     /// The evaluated result of type <typeparamref name="TResult"/>.
     /// </returns>
+    /// <remarks>
+    /// The expression can access the members of <typeparamref name="TContext"/>, not of the runtime type
+    /// of <paramref name="context"/>. Members declared only in a derived or implementing type are not available.
+    /// </remarks>
     public static TResult? Evaluate<TContext, TResult>(ReadOnlySpan<char> source, TContext context) where TContext : notnull
     {
-        var c = Expression.Parameter(context.GetType(), "context");
+        var c = Expression.Parameter(typeof(TContext), "context");
         var r = Parse(source, new ContextAwareBinder(c));
 
         if (!r.Success)
