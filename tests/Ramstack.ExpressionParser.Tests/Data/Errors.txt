@@ -152,6 +152,24 @@ Unary operator '!' cannot be applied to operand of type 'System.Byte'.
 !DayOfWeek.Friday
 Unary operator '!' cannot be applied to operand of type 'System.DayOfWeek'.
 
+!'a'
+Unary operator '!' cannot be applied to operand of type 'System.Char'.
+
+#######################################
+# Shift operators
+
+'a' << 1L
+Operator '<<' cannot be applied to operands of type 'System.Char' and 'System.Int64'.
+
+1 << 1u
+Operator '<<' cannot be applied to operands of type 'System.Int32' and 'System.UInt32'.
+
+1.5 >> 1
+Operator '>>' cannot be applied to operands of type 'System.Double' and 'System.Int32'.
+
+1m >>> 1
+Operator '>>>' cannot be applied to operands of type 'System.Decimal' and 'System.Int32'.
+
 #######################################
 # Conditional operator branches without a common type
 

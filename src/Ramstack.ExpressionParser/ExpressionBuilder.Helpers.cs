@@ -287,23 +287,18 @@ partial class ExpressionBuilder
 
         if (enumType is null && op.Name is ">>" or ">>>" or "<<")
         {
-            if (!TypeUtils.IsInteger(lhs.Type) && TypeUtils.IsInteger(rhs.Type))
-                Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
+            //
+            // The predefined shift operators take an int, uint, long, or ulong value and an int count,
+            // so an operand of a smaller integral type, including char, is converted to int, as in C#.
+            //
+            var lhsType = lhs.Type;
+            var rhsType = rhs.Type;
 
-            if (rhs.Type == typeof(sbyte)
-                || rhs.Type == typeof(byte)
-                || rhs.Type == typeof(short)
-                || rhs.Type == typeof(ushort))
-                rhs = Expression.Convert(rhs, typeof(int));
+            lhs = ApplyUnaryNumericPromotion(lhs);
+            rhs = ApplyUnaryNumericPromotion(rhs);
 
-            if (rhs.Type != typeof(int))
-                Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-
-            if (lhs.Type == typeof(sbyte)
-                || lhs.Type == typeof(byte)
-                || lhs.Type == typeof(short)
-                || lhs.Type == typeof(ushort))
-                lhs = Expression.Convert(lhs, typeof(int));
+            if (!TypeUtils.IsInteger(lhs.Type) || rhs.Type != typeof(int))
+                Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
 
             if (op.Name == ">>>")
             {
@@ -342,6 +337,26 @@ partial class ExpressionBuilder
         }
 
         return result;
+    }
+
+    private static Expression ApplyUnaryNumericPromotion(Expression operand)
+    {
+        //
+        // 12.4.7.2 Unary numeric promotions
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12472-unary-numeric-promotions
+        //
+        // Unary numeric promotion consists of converting operands of type sbyte, byte, short, ushort, or char to type int.
+        //
+        var type = operand.Type;
+
+        if (type == typeof(sbyte)
+            || type == typeof(byte)
+            || type == typeof(short)
+            || type == typeof(ushort)
+            || type == typeof(char))
+            return Expression.Convert(operand, typeof(int));
+
+        return operand;
     }
 
     private static void ApplyBinaryNumericPromotions(Identifier op, ref Expression lhs, ref Expression rhs)
