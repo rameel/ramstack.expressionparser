@@ -107,6 +107,54 @@ public class ExpressionParserTest
         }
     }
 
+    private static IEnumerable<TestCaseData> LiftedBinaryOperatorSource
+    {
+        get
+        {
+            yield return Case("NullableInt + 1", typeof(int?), 6);
+            yield return Case("NullInt + 1", typeof(int?), null);
+            yield return Case("NullableInt + 1L", typeof(long?), 6L);
+            yield return Case("NullableInt + Big", typeof(long?), 15L);
+            yield return Case("NullableInt * 2.5", typeof(double?), 12.5);
+            yield return Case("NullableInt / 2", typeof(int?), 2);
+            yield return Case("NullableInt % 2", typeof(int?), 1);
+            yield return Case("NullableInt - NullableLong", typeof(long?), -2L);
+            yield return Case("NullableByte + NullableByte", typeof(int?), 6);
+            yield return Case("NullableChar + 1", typeof(int?), 98);
+            yield return Case("NullableDecimal + 1", typeof(decimal?), 3.5m);
+            yield return Case("NullableUInt + NullableInt", typeof(long?), 9L);
+            yield return Case("NullableULong + 1u", typeof(ulong?), 9UL);
+            yield return Case("NullInt + null", typeof(int?), null);
+
+            yield return Case("NullableInt & 1", typeof(int?), 1);
+            yield return Case("NullableInt | NullableLong", typeof(long?), 7L);
+            yield return Case("NullableInt ^ 1", typeof(int?), 4);
+            yield return Case("NullableTrue & true", typeof(bool?), true);
+            yield return Case("NullBool & false", typeof(bool?), false);
+            yield return Case("NullBool | true", typeof(bool?), true);
+            yield return Case("NullBool ^ true", typeof(bool?), null);
+
+            yield return Case("NullableInt << 1", typeof(int?), 10);
+            yield return Case("NullableByte << 1", typeof(int?), 6);
+            yield return Case("1 << NullableInt", typeof(int?), 32);
+            yield return Case("NullableLong << NullableInt", typeof(long?), 224L);
+            yield return Case("-NullableInt >>> 28", typeof(int?), 15);
+            yield return Case("-NullableLong >>> 60", typeof(long?), 15L);
+            yield return Case("NullInt << 1", typeof(int?), null);
+
+            yield return Case("NullableDay | DayOfWeek.Monday", typeof(DayOfWeek?), DayOfWeek.Friday);
+            yield return Case("NullableDay & Day", typeof(DayOfWeek?), DayOfWeek.Monday);
+            yield return Case("NullableDay + 1", typeof(DayOfWeek?), DayOfWeek.Saturday);
+            yield return Case("NullDay | Day", typeof(DayOfWeek?), null);
+
+            yield return Case("NullableDate - Date", typeof(TimeSpan?), TimeSpan.FromDays(1));
+            yield return Case("Date + NullableSpan", typeof(DateTime?), new DateTime(2020, 1, 1, 1, 0, 0));
+
+            static TestCaseData Case(string expression, Type type, object? expected) =>
+                new(expression, type, expected);
+        }
+    }
+
     [OneTimeSetUp]
     public void Setup()
     {
@@ -308,6 +356,90 @@ public class ExpressionParserTest
             $"Cannot apply indexing with [] to an expression of type '{typeof(WriteOnlyIndexer)}'."));
     }
 
+    [TestCase("NullInt ?? 1", typeof(int), 1)]
+    [TestCase("NullableInt ?? 1", typeof(int), 5)]
+    [TestCase("NullInt ?? NullableInt", typeof(int?), 5)]
+    [TestCase("NullInt ?? 1L", typeof(long), 1L)]
+    [TestCase("NullInt ?? 1.5", typeof(double), 1.5)]
+    [TestCase("NullableByte ?? Count", typeof(int), 3)]
+    [TestCase("NullInt ?? NullableLong", typeof(long?), 7L)]
+    [TestCase("NullInt ?? (1 :> object)", typeof(object), 1)]
+    [TestCase("NullInt ?? NullInt ?? 9", typeof(int), 9)]
+    [TestCase("NullBool ?? Flag", typeof(bool), true)]
+    [TestCase("NullDay ?? Day", typeof(DayOfWeek), DayOfWeek.Monday)]
+    [TestCase("NullableDay ?? DayOfWeek.Sunday", typeof(DayOfWeek), DayOfWeek.Friday)]
+    [TestCase("NullInt ?? null", typeof(int?), null)]
+    [TestCase("null ?? NullableInt", typeof(int?), 5)]
+    public void Evaluate_NullCoalescingOnNullable_ReturnsTypeOfCSharp(string expression, Type type, object? expected) =>
+        AssertNullableResult(expression, type, expected);
+
+    [TestCaseSource(nameof(LiftedBinaryOperatorSource))]
+    public void Evaluate_LiftedBinaryOperator_ReturnsNullableResult(string expression, Type type, object? expected) =>
+        AssertNullableResult(expression, type, expected);
+
+    [TestCase("NullableInt > 1", true)]
+    [TestCase("NullInt > 1", false)]
+    [TestCase("NullInt <= 1", false)]
+    [TestCase("NullableInt >= NullableLong", false)]
+    [TestCase("NullableInt < 1.5", false)]
+    [TestCase("NullableInt == 5", true)]
+    [TestCase("NullInt == 5", false)]
+    [TestCase("NullInt != 5", true)]
+    [TestCase("NullableInt == NullableLong", false)]
+    [TestCase("NullableByte == 3", true)]
+    [TestCase("NullableDecimal > 1", true)]
+    [TestCase("NullableTrue == true", true)]
+    [TestCase("NullBool == false", false)]
+    [TestCase("NullableDay == DayOfWeek.Friday", true)]
+    [TestCase("NullDay == DayOfWeek.Friday", false)]
+    [TestCase("NullableDay > Day", true)]
+    [TestCase("NullableDate > Date", true)]
+    [TestCase("NullableDate == Date", false)]
+    [TestCase("NullInt == null", true)]
+    [TestCase("null != NullableInt", true)]
+    [TestCase("NullDay == null", true)]
+    [TestCase("NullableDay != null", true)]
+    [TestCase("NullInt > null", false)]
+    public void Evaluate_LiftedComparison_ReturnsBoolean(string expression, bool expected) =>
+        AssertNullableResult(expression, typeof(bool), expected);
+
+    [TestCase("-NullableInt", typeof(int?), -5)]
+    [TestCase("-NullInt", typeof(int?), null)]
+    [TestCase("-NullableByte", typeof(int?), -3)]
+    [TestCase("~NullableByte", typeof(int?), -4)]
+    [TestCase("-NullableChar", typeof(int?), -97)]
+    [TestCase("+NullableChar", typeof(int?), 97)]
+    [TestCase("-NullableUInt", typeof(long?), -4L)]
+    [TestCase("~NullableDay", typeof(DayOfWeek?), ~DayOfWeek.Friday)]
+    [TestCase("~NullDay", typeof(DayOfWeek?), null)]
+    public void Evaluate_LiftedUnaryOperator_ReturnsNullableResult(string expression, Type type, object? expected) =>
+        AssertNullableResult(expression, type, expected);
+
+    [TestCase("Flag ? NullableInt : 1", typeof(int?), 5)]
+    [TestCase("Flag ? 1 : NullableInt", typeof(int?), 1)]
+    [TestCase("Flag ? NullableInt : NullableLong", typeof(long?), 5L)]
+    [TestCase("Flag ? NullDay : Day", typeof(DayOfWeek?), null)]
+    public void Evaluate_ConditionalWithNullableBranch_ReturnsNullableType(string expression, Type type, object? expected) =>
+        AssertNullableResult(expression, type, expected);
+
+    [TestCase("NullableDouble + NullableDecimal", "Operator '+' cannot be applied to operands of type 'System.Nullable`1[System.Double]' and 'System.Nullable`1[System.Decimal]'.")]
+    [TestCase("NullableULong + NullableInt", "Operator '+' cannot be applied to operands of type 'System.Nullable`1[System.UInt64]' and 'System.Nullable`1[System.Int32]'.")]
+    [TestCase("NullableInt << 1L", "Operator '<<' cannot be applied to operands of type 'System.Nullable`1[System.Int32]' and 'System.Int64'.")]
+    [TestCase("NullableInt ?? \"x\"", "Operator '??' cannot be applied to operands of type 'System.Nullable`1[System.Int32]' and 'System.String'.")]
+    [TestCase("-NullableDay", "Unary operator '-' cannot be applied to operand of type 'System.Nullable`1[System.DayOfWeek]'.")]
+    [TestCase("+NullableDay", "Unary operator '+' cannot be applied to operand of type 'System.Nullable`1[System.DayOfWeek]'.")]
+    [TestCase("-NullableULong", "Unary operator '-' cannot be applied to operand of type 'System.Nullable`1[System.UInt64]'.")]
+    [TestCase("NullBool && true", "Cannot implicitly convert type 'System.Nullable`1[System.Boolean]' to 'System.Boolean'.")]
+    [TestCase("Flag ? NullableInt : 1L", "Operator '?:' cannot be applied to operands of type 'System.Nullable`1[System.Int32]' and 'System.Int64'.")]
+    public void Parse_NullableOperandsWithoutOperatorInCSharp_ReturnsError(string expression, string expected)
+    {
+        var parameter = Expression.Parameter(typeof(NullableContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(expected));
+    }
+
     [TestCaseSource(nameof(ErrorsSource))]
     public void ParseErrorExpression(string expression, string expected)
     {
@@ -401,6 +533,24 @@ public class ExpressionParserTest
     {
         var result = ExpressionParser.Parse(source, new DefaultBinder());
         Assert.That(result.ToString(), Is.EqualTo(expected));
+    }
+
+    private static void AssertNullableResult(string expression, Type type, object? expected)
+    {
+        var parameter = Expression.Parameter(typeof(NullableContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+        Assert.That(result.Value!.Type, Is.EqualTo(type));
+
+        //
+        // Boxing loses the nullable type, so the type of the value is checked separately from the type of the expression.
+        //
+        var body = Expression.Convert(result.Value, typeof(object));
+        var value = Expression.Lambda<Func<NullableContext, object?>>(body, parameter).Compile()(new NullableContext());
+
+        Assert.That(value, Is.EqualTo(expected));
+        Assert.That(value?.GetType(), Is.EqualTo(expected?.GetType()));
     }
 
     private static T RunOnThread<T>(int maxStackSize, Func<T> func)
@@ -604,6 +754,30 @@ public class ExpressionParserTest
 
         public static string WithMissing([Optional] object value, [Optional] int number) =>
             $"{value.GetType().Name} {number}";
+    }
+
+    public class NullableContext
+    {
+        public int? NullableInt { get; } = 5;
+        public int? NullInt { get; }
+        public long? NullableLong { get; } = 7;
+        public byte? NullableByte { get; } = 3;
+        public char? NullableChar { get; } = 'a';
+        public uint? NullableUInt { get; } = 4;
+        public ulong? NullableULong { get; } = 8;
+        public double? NullableDouble { get; } = 1.5;
+        public decimal? NullableDecimal { get; } = 2.5m;
+        public bool? NullableTrue { get; } = true;
+        public bool? NullBool { get; }
+        public DayOfWeek? NullableDay { get; } = DayOfWeek.Friday;
+        public DayOfWeek? NullDay { get; }
+        public DateTime? NullableDate { get; } = new DateTime(2020, 1, 2);
+        public TimeSpan? NullableSpan { get; } = TimeSpan.FromHours(1);
+        public int Count { get; } = 3;
+        public long Big { get; } = 10;
+        public bool Flag { get; } = true;
+        public DayOfWeek Day { get; } = DayOfWeek.Monday;
+        public DateTime Date { get; } = new DateTime(2020, 1, 1);
     }
 
     public class ArrayContext

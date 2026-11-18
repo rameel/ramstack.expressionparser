@@ -18,6 +18,27 @@ internal static class ReflectionExtensions
         type.IsGenericType && !type.IsGenericTypeDefinition && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
     /// <summary>
+    /// Returns the underlying type of the specified <see cref="Nullable{T}"/> type, or the type itself for any other type.
+    /// </summary>
+    /// <param name="type">The <see cref="Type"/> to evaluate.</param>
+    /// <returns>
+    /// The underlying type if <paramref name="type"/> is a <see cref="Nullable{T}"/> type;
+    /// otherwise, <paramref name="type"/>.
+    /// </returns>
+    public static Type GetNonNullableType(this Type type) =>
+        Nullable.GetUnderlyingType(type) ?? type;
+
+    /// <summary>
+    /// Returns the <see cref="Nullable{T}"/> type for the specified non-nullable value type.
+    /// </summary>
+    /// <param name="type">The non-nullable value type.</param>
+    /// <returns>
+    /// The <see cref="Nullable{T}"/> type whose underlying type is <paramref name="type"/>.
+    /// </returns>
+    public static Type MakeNullableType(this Type type) =>
+        typeof(Nullable<>).MakeGenericType(type);
+
+    /// <summary>
     /// Determines whether the specified type is declared as static.
     /// </summary>
     /// <param name="type">The <see cref="Type"/> to evaluate.</param>

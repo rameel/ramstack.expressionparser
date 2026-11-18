@@ -45,6 +45,20 @@ partial class ExpressionBuilder
         if (TypeUtils.CanConvertPrimitive(expression.Type, conversionType))
             return Expression.Convert(expression, conversionType);
 
+        //
+        // 10.2.6 Implicit nullable conversions
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#1026-implicit-nullable-conversions
+        //
+        // For each predefined implicit identity or numeric conversion from a non-nullable value type S
+        // to a non-nullable value type T, implicit conversions exist from S? to T? and from S to T?.
+        //
+        if (Nullable.GetUnderlyingType(conversionType) is { } underlyingType)
+        {
+            var sourceType = expression.Type.GetNonNullableType();
+            if (sourceType == underlyingType || TypeUtils.CanConvertPrimitive(sourceType, underlyingType))
+                return Expression.Convert(expression, conversionType);
+        }
+
         var conversion = TypeUtils.FindConversionOperator(expression.Type, conversionType);
         if (conversion is not null)
             return Expression.Convert(expression, conversionType, conversion);
@@ -111,16 +125,86 @@ partial class ExpressionBuilder
         Error.NonApplicableConditionalOperator(ifTrue.Type, ifFalse.Type);
         return null!;
 
-        static bool IsNullLiteral(Expr expr)
-        {
-            while (expr is Expr.Parenthesized parenthesized)
-                expr = parenthesized.Expression;
-
-            return expr is Expr.Literal { Value: null };
-        }
-
         static bool CanBeNull(Type type) =>
             !type.IsValueType || type.IsNullable();
+    }
+
+    /// <summary>
+    /// Creates a null-coalescing expression whose operands are converted to its result type.
+    /// </summary>
+    /// <param name="op">The <see cref="Identifier"/> representing the operator.</param>
+    /// <param name="lhs">The expression of the left operand.</param>
+    /// <param name="rhs">The expression of the right operand.</param>
+    /// <returns>
+    /// The null-coalescing expression.
+    /// </returns>
+    private static BinaryExpression ApplyNullCoalescing(Identifier op, Expression lhs, Expression rhs)
+    {
+        //
+        // 12.15 The null coalescing operator
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#1215-the-null-coalescing-operator
+        //
+        // In order of preference, the type of a ?? b is A₀, A, or B, where A is the type of a, B is the type of b,
+        // and A₀ is the underlying type of A if A is a nullable value type, or A otherwise:
+        //
+        // * If A is a non-nullable value type, a compile-time error occurs.
+        // * Otherwise, if A is a nullable value type and an implicit conversion exists from b to A₀,
+        //   the result type is A₀.
+        // * Otherwise, if an implicit conversion exists from b to A, the result type is A.
+        // * Otherwise, if A is a nullable value type and an implicit conversion exists from A₀ to B,
+        //   the result type is B.
+        //
+        var lhsType = lhs.Type;
+        var rhsType = rhs.Type;
+
+        if (lhsType.IsValueType && !lhsType.IsNullable())
+            Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
+
+        var underlyingType = Nullable.GetUnderlyingType(lhsType);
+        if (underlyingType is not null)
+        {
+            var value = ApplyImplicitConversion(rhs, underlyingType);
+            if (value is not null)
+                return Expression.Coalesce(lhs, value);
+        }
+
+        var converted = ApplyImplicitConversion(rhs, lhsType);
+        if (converted is not null)
+            return Expression.Coalesce(lhs, converted);
+
+        if (underlyingType is not null)
+        {
+            //
+            // A non-null value of a is unwrapped and converted to B. Convert a to the nullable form of B instead,
+            // which keeps its null value. For a reference type B, the conversion is a boxing conversion.
+            //
+            converted = rhsType.IsValueType
+                ? ApplyImplicitConversion(lhs, rhsType.IsNullable() ? rhsType : rhsType.MakeNullableType())
+                : rhsType.IsAssignableFrom(underlyingType)
+                    ? Expression.Convert(lhs, rhsType)
+                    : null;
+
+            if (converted is not null)
+                return Expression.Coalesce(converted, rhs);
+        }
+
+        Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
+        return null!;
+    }
+
+    /// <summary>
+    /// Determines whether the specified expression is the null literal, possibly in parentheses.
+    /// </summary>
+    /// <param name="expr">The expression to test.</param>
+    /// <returns>
+    /// <see langword="true" /> if the expression is the null literal; otherwise, <see langword="false" />.
+    /// </returns>
+    private static bool IsNullLiteral(Expr expr)
+    {
+        while (expr is Expr.Parenthesized parenthesized)
+            expr = parenthesized.Expression;
+
+        return expr is Expr.Literal { Value: null };
     }
 
     /// <summary>
@@ -260,29 +344,40 @@ partial class ExpressionBuilder
 
     private static Expression ApplyBinaryExpression(Identifier op, Func<Expression, Expression, Expression> apply, Expression lhs, Expression rhs)
     {
-        var enumUnderlyingType = lhs.Type.IsEnum
-            ? lhs.Type.GetEnumUnderlyingType()
-            : rhs.Type.IsEnum
-                ? rhs.Type.GetEnumUnderlyingType()
+        //
+        // 12.4.8 Lifted operators
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#1248-lifted-operators
+        //
+        // The operators on non-nullable value types have lifted forms, which take and return the nullable forms
+        // of the types. If either operand is of a nullable value type, the operator is selected by the underlying
+        // types of the operands, and both operands are converted to the nullable forms of the operator's operand types.
+        //
+        var lhsType = lhs.Type;
+        var rhsType = rhs.Type;
+
+        var lifted = lhsType.IsNullable() || rhsType.IsNullable();
+        var lhsNonNullableType = lhsType.GetNonNullableType();
+        var rhsNonNullableType = rhsType.GetNonNullableType();
+
+        var enumType = lhsNonNullableType.IsEnum
+            ? lhsNonNullableType
+            : rhsNonNullableType.IsEnum
+                ? rhsNonNullableType
                 : null;
 
-        var enumType = lhs.Type.IsEnum
-            ? lhs.Type
-            : rhs.Type.IsEnum
-                ? rhs.Type
-                : null;
-
-        if (enumUnderlyingType is not null)
+        if (enumType is not null)
         {
-            if (lhs.Type != rhs.Type)
-                if (lhs.Type.IsEnum ? enumUnderlyingType != rhs.Type : enumUnderlyingType != lhs.Type)
-                    Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
+            var enumUnderlyingType = enumType.GetEnumUnderlyingType();
 
-            if (lhs.Type.IsEnum)
-                lhs = Expression.Convert(lhs, enumUnderlyingType);
+            if (lhsNonNullableType != rhsNonNullableType)
+                if (lhsNonNullableType.IsEnum ? enumUnderlyingType != rhsNonNullableType : enumUnderlyingType != lhsNonNullableType)
+                    Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
 
-            if (rhs.Type.IsEnum)
-                rhs = Expression.Convert(rhs, enumUnderlyingType);
+            if (lhsNonNullableType.IsEnum)
+                lhs = ConvertOperand(lhs, enumUnderlyingType, lifted);
+
+            if (rhsNonNullableType.IsEnum)
+                rhs = ConvertOperand(rhs, enumUnderlyingType, lifted);
         }
 
         if (enumType is null && op.Name is ">>" or ">>>" or "<<")
@@ -291,32 +386,46 @@ partial class ExpressionBuilder
             // The predefined shift operators take an int, uint, long, or ulong value and an int count,
             // so an operand of a smaller integral type, including char, is converted to int, as in C#.
             //
-            var lhsType = lhs.Type;
-            var rhsType = rhs.Type;
-
             lhs = ApplyUnaryNumericPromotion(lhs);
             rhs = ApplyUnaryNumericPromotion(rhs);
 
-            if (!TypeUtils.IsInteger(lhs.Type) || rhs.Type != typeof(int))
+            var shiftType = lhs.Type.GetNonNullableType();
+            if (!TypeUtils.IsInteger(shiftType) || rhs.Type.GetNonNullableType() != typeof(int))
                 Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
 
             if (op.Name == ">>>")
             {
-                if (lhs.Type == typeof(int))
-                    return Expression.Convert(
-                        apply(Expression.Convert(lhs, typeof(uint)), rhs),
-                        typeof(int));
+                if (shiftType == typeof(int))
+                    return ConvertOperand(
+                        apply(ConvertOperand(lhs, typeof(uint), lifted), rhs),
+                        typeof(int),
+                        lifted);
 
-                if (lhs.Type == typeof(long))
-                    return Expression.Convert(
-                        apply(Expression.Convert(lhs, typeof(ulong)), rhs),
-                        typeof(long));
+                if (shiftType == typeof(long))
+                    return ConvertOperand(
+                        apply(ConvertOperand(lhs, typeof(ulong), lifted), rhs),
+                        typeof(long),
+                        lifted);
             }
 
             return apply(lhs, rhs);
         }
 
         ApplyBinaryNumericPromotions(op, ref lhs, ref rhs);
+
+        if (lifted)
+        {
+            //
+            // Expression lifts a user-defined operator, such as DateTime subtraction, only if both operands
+            // are of nullable types, so convert the remaining operand of a non-nullable value type.
+            //
+            if (lhs.Type.IsValueType)
+                lhs = ConvertOperand(lhs, lhs.Type.GetNonNullableType(), lifted: true);
+
+            if (rhs.Type.IsValueType)
+                rhs = ConvertOperand(rhs, rhs.Type.GetNonNullableType(), lifted: true);
+        }
+
         var result = apply(lhs, rhs);
 
         if (enumType is not null)
@@ -332,11 +441,30 @@ partial class ExpressionBuilder
                     return result;
 
                 default:
-                    return Expression.Convert(result, enumType);
+                    return ConvertOperand(result, enumType, lifted);
             }
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Converts an operand to the specified type, or to the nullable form of the type for a lifted operator.
+    /// </summary>
+    /// <param name="operand">The expression of the operand.</param>
+    /// <param name="type">The non-nullable value type to convert to.</param>
+    /// <param name="lifted"><see langword="true" /> to convert to the nullable form of <paramref name="type"/>.</param>
+    /// <returns>
+    /// The converted expression, or <paramref name="operand"/> if it is already of the resulting type.
+    /// </returns>
+    private static Expression ConvertOperand(Expression operand, Type type, bool lifted)
+    {
+        if (lifted)
+            type = type.MakeNullableType();
+
+        return operand.Type != type
+            ? Expression.Convert(operand, type)
+            : operand;
     }
 
     private static Expression ApplyUnaryNumericPromotion(Expression operand)
@@ -346,15 +474,16 @@ partial class ExpressionBuilder
         // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12472-unary-numeric-promotions
         //
         // Unary numeric promotion consists of converting operands of type sbyte, byte, short, ushort, or char to type int.
+        // For a lifted operator, an operand of the nullable form of these types is converted to int?.
         //
-        var type = operand.Type;
+        var type = operand.Type.GetNonNullableType();
 
         if (type == typeof(sbyte)
             || type == typeof(byte)
             || type == typeof(short)
             || type == typeof(ushort)
             || type == typeof(char))
-            return Expression.Convert(operand, typeof(int));
+            return ConvertOperand(operand, typeof(int), operand.Type.IsNullable());
 
         return operand;
     }
@@ -380,9 +509,13 @@ partial class ExpressionBuilder
         //   both operands are converted to type long.
         // * Otherwise, if either operand is of type uint, the other operand is converted to type uint.
         // * Otherwise, both operands are converted to type int.
+        //
+        // For a lifted operator, the rules apply to the underlying types, and both operands are converted
+        // to the nullable form of the resulting type.
 
-        var lhsType = lhs.Type;
-        var rhsType = rhs.Type;
+        var lhsType = lhs.Type.GetNonNullableType();
+        var rhsType = rhs.Type.GetNonNullableType();
+        var lifted = lhs.Type.IsNullable() || rhs.Type.IsNullable();
 
         if (!TypeUtils.IsNumeric(lhsType)
             || !TypeUtils.IsNumeric(rhsType))
@@ -418,7 +551,7 @@ partial class ExpressionBuilder
                     || lhsType == typeof(float)
                     || rhsType == typeof(double)
                     || rhsType == typeof(float))
-                    Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
+                    Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
             }
             else if (conversionType == typeof(ulong))
             {
@@ -434,7 +567,7 @@ partial class ExpressionBuilder
                     || rhsType == typeof(short)
                     || rhsType == typeof(int)
                     || rhsType == typeof(long))
-                    Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
+                    Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
             }
             else if (conversionType == typeof(uint))
             {
@@ -451,11 +584,8 @@ partial class ExpressionBuilder
                     conversionType = typeof(long);
             }
 
-            if (lhsType != conversionType)
-                lhs = Expression.Convert(lhs, conversionType);
-
-            if (rhsType != conversionType)
-                rhs = Expression.Convert(rhs, conversionType);
+            lhs = ConvertOperand(lhs, conversionType, lifted);
+            rhs = ConvertOperand(rhs, conversionType, lifted);
 
             return;
         }
