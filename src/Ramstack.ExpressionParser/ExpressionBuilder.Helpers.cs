@@ -208,6 +208,78 @@ partial class ExpressionBuilder
     }
 
     /// <summary>
+    /// Determines whether the specified expression is the integer literal 0, possibly in parentheses.
+    /// </summary>
+    /// <param name="expr">The expression to test.</param>
+    /// <returns>
+    /// <see langword="true" /> if the expression is the integer literal 0; otherwise, <see langword="false" />.
+    /// </returns>
+    private static bool IsZeroLiteral(Expr expr)
+    {
+        while (expr is Expr.Parenthesized parenthesized)
+            expr = parenthesized.Expression;
+
+        return expr is Expr.Literal { Value: 0 or 0u or 0L or 0UL };
+    }
+
+    /// <summary>
+    /// Converts the integer literal 0 opposite an operand of an enum type to that enum type
+    /// if the operator is defined for two operands of the enum type.
+    /// </summary>
+    /// <param name="expr">The binary expression.</param>
+    /// <param name="lhs">The expression of the left operand.</param>
+    /// <param name="rhs">The expression of the right operand.</param>
+    private static void ApplyEnumZeroConversion(Expr.Binary expr, ref Expression lhs, ref Expression rhs)
+    {
+        //
+        // 10.2.4 Implicit enumeration conversions
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#1024-implicit-enumeration-conversions
+        //
+        // An implicit enumeration conversion permits a constant expression with any integer type and the value zero
+        // to be converted to any enum type and to any nullable value type whose underlying type is an enum type.
+        //
+        // Of such constant expressions, only the integer literal 0 is recognized.
+        //
+        switch (expr.Operator.Name)
+        {
+            case "-":
+            case "&":
+            case "|":
+            case "^":
+            case "==":
+            case "!=":
+            case "<":
+            case ">":
+            case "<=":
+            case ">=":
+                break;
+
+            default:
+                return;
+        }
+
+        var lhsType = lhs.Type.GetNonNullableType();
+        var rhsType = rhs.Type.GetNonNullableType();
+
+        if (lhsType.IsEnum && IsZeroLiteral(expr.Right))
+        {
+            //
+            // Both E - E and E - U accept 'x - 0'. As in the C# compiler, E - U is selected and returns E
+            // if the literal is of the underlying type U; otherwise, E - E is selected and returns U, as in 'x - 0L'.
+            //
+            if (expr.Operator.Name != "-" || rhsType != lhsType.GetEnumUnderlyingType())
+                rhs = Expression.Convert(rhs, lhsType);
+        }
+        else if (rhsType.IsEnum && IsZeroLiteral(expr.Left))
+        {
+            //
+            // As in the C# compiler, E - E is selected for '0 - x' over U - E, so the result is of the underlying type.
+            //
+            lhs = Expression.Convert(lhs, rhsType);
+        }
+    }
+
+    /// <summary>
     /// Applies an implicit conversion of a branch of a conditional expression to the type of the other branch.
     /// </summary>
     /// <param name="expression">The expression of the branch.</param>
@@ -365,13 +437,57 @@ partial class ExpressionBuilder
                 ? rhsNonNullableType
                 : null;
 
+        //
+        // The type to which the result of an enum operator is converted. It remains null for an enum comparison,
+        // whose result is bool, and if neither operand is of an enum type.
+        //
+        Type? enumResultType = null;
+
         if (enumType is not null)
         {
+            //
+            // 12.10.5 Addition operator, 12.10.6 Subtraction operator, 12.12.6 Enumeration comparison operators,
+            // and 12.13.3 Enumeration logical operators
+            // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12105-addition-operator
+            //
+            // Every enum type E with the underlying type U implicitly provides the following operators:
+            //
+            //   E operator +(E x, U y);
+            //   E operator +(U x, E y);
+            //   U operator -(E x, E y);
+            //   E operator -(E x, U y);
+            //   E operator &(E x, E y);  and likewise |, ^
+            //   bool operator ==(E x, E y);  and likewise !=, <, >, <=, >=
+            //
+            // Each operator is evaluated on the values converted to U, as in (E)((U)x + (U)y).
+            // The C# compiler also accepts U - E and returns E, so it is supported as well.
+            //
             var enumUnderlyingType = enumType.GetEnumUnderlyingType();
+            var otherType = lhsNonNullableType.IsEnum ? rhsNonNullableType : lhsNonNullableType;
 
-            if (lhsNonNullableType != rhsNonNullableType)
-                if (lhsNonNullableType.IsEnum ? enumUnderlyingType != rhsNonNullableType : enumUnderlyingType != lhsNonNullableType)
+            var isEnumPair = lhsNonNullableType == rhsNonNullableType;
+            var isUnderlyingPair = otherType == enumUnderlyingType
+                || TypeUtils.CanConvertPrimitive(otherType, enumUnderlyingType);
+
+            switch (op.Name)
+            {
+                case "+" when isUnderlyingPair:
+                case "-" when isUnderlyingPair:
+                case "&" or "|" or "^" when isEnumPair:
+                    enumResultType = enumType;
+                    break;
+
+                case "-" when isEnumPair:
+                    enumResultType = enumUnderlyingType;
+                    break;
+
+                case "==" or "!=" or "<" or ">" or "<=" or ">=" when isEnumPair:
+                    break;
+
+                default:
                     Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
+                    break;
+            }
 
             if (lhsNonNullableType.IsEnum)
                 lhs = ConvertOperand(lhs, enumUnderlyingType, lifted);
@@ -379,8 +495,7 @@ partial class ExpressionBuilder
             if (rhsNonNullableType.IsEnum)
                 rhs = ConvertOperand(rhs, enumUnderlyingType, lifted);
         }
-
-        if (enumType is null && op.Name is ">>" or ">>>" or "<<")
+        else if (op.Name is ">>" or ">>>" or "<<")
         {
             //
             // The predefined shift operators take an int, uint, long, or ulong value and an int count,
@@ -428,24 +543,9 @@ partial class ExpressionBuilder
 
         var result = apply(lhs, rhs);
 
-        if (enumType is not null)
-        {
-            switch (op.Name)
-            {
-                case "==":
-                case "!=":
-                case ">":
-                case "<":
-                case ">=":
-                case "<=":
-                    return result;
-
-                default:
-                    return ConvertOperand(result, enumType, lifted);
-            }
-        }
-
-        return result;
+        return enumResultType is not null
+            ? ConvertOperand(result, enumResultType, lifted)
+            : result;
     }
 
     /// <summary>

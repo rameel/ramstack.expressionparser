@@ -520,6 +520,18 @@ DayOfWeek.Friday :> DayOfWeek
 DayOfWeek.Friday
 
 #######################################
+# Enum binary operators
+
+DayOfWeek.Friday - DayOfWeek.Monday
+(Convert(DayOfWeek.Friday, Int32) - Convert(DayOfWeek.Monday, Int32))
+
+DayOfWeek.Friday - 1
+Convert((Convert(DayOfWeek.Friday, Int32) - 1), DayOfWeek)
+
+DayOfWeek.Friday | 0
+Convert((Convert(DayOfWeek.Friday, Int32) | Convert(Convert(0, DayOfWeek), Int32)), DayOfWeek)
+
+#######################################
 # Conditional operator branches of different types
 
 true ? 1 : 2.0

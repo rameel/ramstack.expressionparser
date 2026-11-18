@@ -55,12 +55,15 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         //
         // The null literal converts to a nullable value type, so opposite an operand of such a type
-        // it takes that type, as in 'x == null' or 'x ?? null'.
+        // it takes that type, as in 'x == null' or 'x ?? null'. For an enum type E, only E + U and U + E
+        // are defined, so in 'x + null' it takes the nullable form of the underlying type U instead.
         //
         if (lhsType.IsNullable() && IsNullLiteral(expr.Right))
-            rhs = Expression.Constant(null, lhsType);
+            rhs = Expression.Constant(null, GetNullLiteralType(expr.Operator, lhsType));
         else if (rhsType.IsNullable() && IsNullLiteral(expr.Left))
-            lhs = Expression.Constant(null, rhsType);
+            lhs = Expression.Constant(null, GetNullLiteralType(expr.Operator, rhsType));
+
+        ApplyEnumZeroConversion(expr, ref lhs, ref rhs);
 
         var factory = ResolveBinaryOperatorFactory(expr.Operator.Name);
 
@@ -168,6 +171,11 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
         }
 
         return null!;
+
+        static Type GetNullLiteralType(Identifier op, Type operandType) =>
+            op.Name == "+" && operandType.GetNonNullableType() is { IsEnum: true } enumType
+                ? enumType.GetEnumUnderlyingType().MakeNullableType()
+                : operandType;
     }
 
     /// <inheritdoc />
