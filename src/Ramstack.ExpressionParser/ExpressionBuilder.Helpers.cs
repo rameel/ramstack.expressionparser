@@ -33,7 +33,34 @@ partial class ExpressionBuilder
         Debug.Assert(context is not null || member.IsStatic());
         Debug.Assert(context is null || !member.IsStatic());
 
-        return Expression.MakeMemberAccess(context, member);
+        return CreateMemberAccess(context, member);
+    }
+
+    /// <summary>
+    /// Creates an expression that reads the specified field or property.
+    /// </summary>
+    /// <param name="expression">The expression of the instance, or <see langword="null" /> for a static member.</param>
+    /// <param name="member">The field or property to read.</param>
+    /// <returns>
+    /// The <see cref="MemberExpression"/> that reads the member.
+    /// </returns>
+    private static MemberExpression CreateMemberAccess(Expression? expression, MemberInfo member)
+    {
+        //
+        // As in C#, a property is read through its get accessor, so a property whose get accessor
+        // is missing or not public cannot be read, even if its set accessor is public.
+        //
+        if (member is PropertyInfo property)
+        {
+            var getter = property.GetMethod;
+            if (getter is null)
+                Error.MissingGetAccessor(property);
+
+            if (!getter.IsPublic)
+                Error.InaccessibleGetAccessor(property);
+        }
+
+        return Expression.MakeMemberAccess(expression, member);
     }
 
     private static Expression? ApplyImplicitConversion(Expression expression, Type conversionType)

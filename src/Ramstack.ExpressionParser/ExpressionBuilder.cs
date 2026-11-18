@@ -220,13 +220,17 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         Expression ProcessIndex()
         {
+            var indexers = new List<PropertyInfo>();
             var methods = new List<MethodBase>();
 
             foreach (var pi in self.Type.GetProperties())
             {
                 var mi = pi.GetMethod;
                 if (mi?.GetParameters().Length > 0)
+                {
+                    indexers.Add(pi);
                     methods.Add(mi);
+                }
             }
 
             if (methods.Count == 0)
@@ -234,10 +238,14 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
             var method = (MethodInfo?)MethodResolver.ResolveMethod(methods.ToArray(), parameterTypes);
             if (method is null)
-            {
-                var list = self.Type.GetProperties().Where(p => p.GetMethod?.GetParameters().Length > 0);
-                Error.AmbiguousMatch(list);
-            }
+                Error.AmbiguousMatch(indexers);
+
+            //
+            // As in C#, an indexer whose get accessor is not public takes part in overload resolution,
+            // but cannot be read.
+            //
+            if (!method.IsPublic)
+                Error.InaccessibleGetAccessor(indexers[methods.IndexOf(method)]);
 
             var injectingArguments = CreateInjectingArguments(method, parameters);
             return Expression.Call(self, method, injectingArguments);
@@ -313,7 +321,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                     //
                     // A member accessed through a type is static, so it is accessed without an instance.
                     //
-                    expression = Expression.MakeMemberAccess(expression, memberInfo);
+                    expression = CreateMemberAccess(expression, memberInfo);
                     return Invoke(expression, null);
                 }
 
@@ -377,7 +385,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (expression?.Type.IsSZArray == true && memberInfo.DeclaringType == typeof(Array) && memberInfo.Name == nameof(Array.Length))
                 return Expression.ArrayLength(expression);
 
-            return Expression.MakeMemberAccess(expression, memberInfo);
+            return CreateMemberAccess(expression, memberInfo);
         }
 
         Error.IdentifierExpected(expr.Member);

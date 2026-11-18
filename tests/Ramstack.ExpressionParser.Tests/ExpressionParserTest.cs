@@ -356,6 +356,44 @@ public class ExpressionParserTest
             $"Cannot apply indexing with [] to an expression of type '{typeof(WriteOnlyIndexer)}'."));
     }
 
+    [TestCase("PrivateGetter", "AccessorContext.PrivateGetter")]
+    [TestCase("ProtectedGetter", "AccessorContext.ProtectedGetter")]
+    [TestCase("InternalGetter", "AccessorContext.InternalGetter")]
+    [TestCase("Self.PrivateGetter", "AccessorContext.PrivateGetter")]
+    [TestCase("PrivateGetter.Length", "AccessorContext.PrivateGetter")]
+    [TestCase("StaticPrivateGetter", "AccessorContext.StaticPrivateGetter")]
+    [TestCase("AccessorContext.StaticPrivateGetter", "AccessorContext.StaticPrivateGetter")]
+    [TestCase("PrivateDelegate(1)", "AccessorContext.PrivateDelegate")]
+    [TestCase("PrivateIndexer[1]", "PrivateGetterIndexer.this[System.Int32]")]
+    [TestCase("Overloaded[1]", "OverloadedIndexer.this[System.Int32]")]
+    public void Parse_NonPublicGetAccessor_ReturnsError(string expression, string property)
+    {
+        var parameter = Expression.Parameter(typeof(AccessorContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(
+            $"The property or indexer '{typeof(ExpressionParserTest)}+{property}' "
+            + "cannot be used in this context because the get accessor is inaccessible."));
+    }
+
+    [TestCase("WriteOnly")]
+    [TestCase("WriteOnly.Length")]
+    [TestCase("Self.WriteOnly")]
+    public void Parse_PropertyWithoutGetAccessor_ReturnsError(string expression)
+    {
+        var parameter = Expression.Parameter(typeof(AccessorContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(
+            $"The property or indexer '{typeof(AccessorContext)}.WriteOnly' cannot be used in this context because it lacks the get accessor."));
+    }
+
+    [Test]
+    public void Evaluate_IndexerWithPublicGetAccessor_ReturnsValue() =>
+        Assert.That(ExpressionParser.Evaluate("Overloaded[1L]", new AccessorContext()), Is.EqualTo("long 1"));
+
     [TestCase("NullInt ?? 1", typeof(int), 1)]
     [TestCase("NullableInt ?? 1", typeof(int), 5)]
     [TestCase("NullInt ?? NullableInt", typeof(int?), 5)]
@@ -753,6 +791,33 @@ public class ExpressionParserTest
     public class WriteOnlyIndexer
     {
         public string this[int index] { set { } }
+    }
+
+    public class AccessorContext
+    {
+        private string _value = "value";
+        private Func<int, int> _delegate = x => x;
+
+        public string PrivateGetter { private get => _value; set => _value = value; }
+        public string ProtectedGetter { protected get => _value; set => _value = value; }
+        public string InternalGetter { internal get => _value; set => _value = value; }
+        public string WriteOnly { set => _value = value; }
+        public static string StaticPrivateGetter { private get => "static"; set { } }
+        public Func<int, int> PrivateDelegate { private get => _delegate; set => _delegate = value; }
+        public PrivateGetterIndexer PrivateIndexer { get; } = new();
+        public OverloadedIndexer Overloaded { get; } = new();
+        public AccessorContext Self => this;
+    }
+
+    public class PrivateGetterIndexer
+    {
+        public string this[int index] { private get => "private"; set { } }
+    }
+
+    public class OverloadedIndexer
+    {
+        public string this[int index] { private get => "private"; set { } }
+        public string this[long index] => $"long {index}";
     }
 
     public class ParamArrayContext
