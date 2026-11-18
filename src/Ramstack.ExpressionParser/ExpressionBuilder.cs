@@ -301,12 +301,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                         Error.NonInvocableMember(m);
 
                     //
-                    // This shouldn't happen, but we'll crash if it does
+                    // A member accessed through a type is static, so it is accessed without an instance.
                     //
-                    if (expression is null)
-                        throw new InvalidOperationException(
-                            "Cannot access a member on a null reference.");
-
                     expression = Expression.MakeMemberAccess(expression, memberInfo);
                     return Invoke(expression, null);
                 }
