@@ -440,6 +440,60 @@ public class ExpressionParserTest
         Assert.That(result.ErrorMessage, Is.EqualTo(expected));
     }
 
+    [TestCase("Day + ByteValue", typeof(DayOfWeek), DayOfWeek.Saturday)]
+    [TestCase("ShortValue + Day", typeof(DayOfWeek), DayOfWeek.Saturday)]
+    [TestCase("Day + CharValue", typeof(DayOfWeek), (DayOfWeek)102)]
+    [TestCase("Day - ByteValue", typeof(DayOfWeek), DayOfWeek.Thursday)]
+    [TestCase("ByteValue - Day", typeof(DayOfWeek), (DayOfWeek)(-4))]
+    [TestCase("Day - DayOfWeek.Monday", typeof(int), 4)]
+    [TestCase("Day - Day", typeof(int), 0)]
+    [TestCase("Day - 0", typeof(DayOfWeek), DayOfWeek.Friday)]
+    [TestCase("Day - 0L", typeof(int), 5)]
+    [TestCase("0 - Day", typeof(int), -5)]
+    [TestCase("Level + ByteValue", typeof(ByteLevel), ByteLevel.High)]
+    [TestCase("Level - NextLevel", typeof(byte), (byte)255)]
+    [TestCase("Level - 0", typeof(byte), (byte)1)]
+    [TestCase("NullableDay - DayOfWeek.Monday", typeof(int?), 4)]
+    [TestCase("NullDay - Day", typeof(int?), null)]
+    [TestCase("0 - NullableDay", typeof(int?), -5)]
+    [TestCase("NullableDay + NullableByteValue", typeof(DayOfWeek?), DayOfWeek.Saturday)]
+    [TestCase("NullableDay + null", typeof(DayOfWeek?), null)]
+    [TestCase("null + NullableDay", typeof(DayOfWeek?), null)]
+    [TestCase("NullableDay - null", typeof(int?), null)]
+    public void Evaluate_EnumAdditiveOperator_ReturnsTypeOfCSharp(string expression, Type type, object? expected) =>
+        AssertResult(new EnumContext(), expression, type, expected);
+
+    [TestCase("Day & 0", typeof(DayOfWeek), DayOfWeek.Sunday)]
+    [TestCase("0u | Day", typeof(DayOfWeek), DayOfWeek.Friday)]
+    [TestCase("Day ^ (0)", typeof(DayOfWeek), DayOfWeek.Friday)]
+    [TestCase("Level | 0", typeof(ByteLevel), ByteLevel.Low)]
+    [TestCase("NullableDay & 0L", typeof(DayOfWeek?), DayOfWeek.Sunday)]
+    [TestCase("Day == 0", typeof(bool), false)]
+    [TestCase("0x0 < Day", typeof(bool), true)]
+    [TestCase("Day != 0ul", typeof(bool), true)]
+    [TestCase("Level == 0", typeof(bool), false)]
+    [TestCase("NullableDay > 0", typeof(bool), true)]
+    [TestCase("NullDay == 0", typeof(bool), false)]
+    public void Evaluate_EnumAndZeroLiteral_ConvertsZeroToEnum(string expression, Type type, object? expected) =>
+        AssertResult(new EnumContext(), expression, type, expected);
+
+    [TestCase("Level + IntValue", "Operator '+' cannot be applied to operands of type 'Ramstack.Parsing.ExpressionParserTest+ByteLevel' and 'System.Int32'.")]
+    [TestCase("Day & ByteValue", "Operator '&' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Byte'.")]
+    [TestCase("Day == IntValue", "Operator '==' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.")]
+    [TestCase("Day == Level", "Operator '==' cannot be applied to operands of type 'System.DayOfWeek' and 'Ramstack.Parsing.ExpressionParserTest+ByteLevel'.")]
+    [TestCase("NullableDay * 2", "Operator '*' cannot be applied to operands of type 'System.Nullable`1[System.DayOfWeek]' and 'System.Int32'.")]
+    [TestCase("NullableDay >>> 1", "Operator '>>>' cannot be applied to operands of type 'System.Nullable`1[System.DayOfWeek]' and 'System.Int32'.")]
+    [TestCase("NullableDay + NullableDay", "Operator '+' cannot be applied to operands of type 'System.Nullable`1[System.DayOfWeek]' and 'System.Nullable`1[System.DayOfWeek]'.")]
+    [TestCase("NullableDay == 5", "Operator '==' cannot be applied to operands of type 'System.Nullable`1[System.DayOfWeek]' and 'System.Int32'.")]
+    public void Parse_EnumOperandsWithoutOperatorInCSharp_ReturnsError(string expression, string expected)
+    {
+        var parameter = Expression.Parameter(typeof(EnumContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo(expected));
+    }
+
     [TestCaseSource(nameof(ErrorsSource))]
     public void ParseErrorExpression(string expression, string expected)
     {
@@ -535,9 +589,12 @@ public class ExpressionParserTest
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
-    private static void AssertNullableResult(string expression, Type type, object? expected)
+    private static void AssertNullableResult(string expression, Type type, object? expected) =>
+        AssertResult(new NullableContext(), expression, type, expected);
+
+    private static void AssertResult<TContext>(TContext context, string expression, Type type, object? expected)
     {
-        var parameter = Expression.Parameter(typeof(NullableContext), "c");
+        var parameter = Expression.Parameter(typeof(TContext), "c");
         var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
 
         Assert.That(result.Success, Is.True, result.ErrorMessage);
@@ -547,7 +604,7 @@ public class ExpressionParserTest
         // Boxing loses the nullable type, so the type of the value is checked separately from the type of the expression.
         //
         var body = Expression.Convert(result.Value, typeof(object));
-        var value = Expression.Lambda<Func<NullableContext, object?>>(body, parameter).Compile()(new NullableContext());
+        var value = Expression.Lambda<Func<TContext, object?>>(body, parameter).Compile()(context);
 
         Assert.That(value, Is.EqualTo(expected));
         Assert.That(value?.GetType(), Is.EqualTo(expected?.GetType()));
@@ -778,6 +835,26 @@ public class ExpressionParserTest
         public bool Flag { get; } = true;
         public DayOfWeek Day { get; } = DayOfWeek.Monday;
         public DateTime Date { get; } = new DateTime(2020, 1, 1);
+    }
+
+    public enum ByteLevel : byte
+    {
+        Low = 1,
+        High = 2
+    }
+
+    public class EnumContext
+    {
+        public DayOfWeek Day { get; } = DayOfWeek.Friday;
+        public DayOfWeek? NullableDay { get; } = DayOfWeek.Friday;
+        public DayOfWeek? NullDay { get; }
+        public ByteLevel Level { get; } = ByteLevel.Low;
+        public ByteLevel NextLevel { get; } = ByteLevel.High;
+        public byte ByteValue { get; } = 1;
+        public byte? NullableByteValue { get; } = 1;
+        public short ShortValue { get; } = 1;
+        public char CharValue { get; } = 'a';
+        public int IntValue { get; } = 1;
     }
 
     public class ArrayContext

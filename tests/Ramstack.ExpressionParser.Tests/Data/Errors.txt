@@ -180,6 +180,63 @@ Operator '>>' cannot be applied to operands of type 'System.Double' and 'System.
 Operator '>>>' cannot be applied to operands of type 'System.Decimal' and 'System.Int32'.
 
 #######################################
+# Binary operators not defined for enum operands
+
+DayOfWeek.Friday * 2
+Operator '*' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday / 2
+Operator '/' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday % 2
+Operator '%' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday * 0
+Operator '*' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday * DayOfWeek.Monday
+Operator '*' cannot be applied to operands of type 'System.DayOfWeek' and 'System.DayOfWeek'.
+
+DayOfWeek.Friday << 1
+Operator '<<' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+1 << DayOfWeek.Friday
+Operator '<<' cannot be applied to operands of type 'System.Int32' and 'System.DayOfWeek'.
+
+DayOfWeek.Friday >> 1
+Operator '>>' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday >>> 1
+Operator '>>>' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday + DayOfWeek.Monday
+Operator '+' cannot be applied to operands of type 'System.DayOfWeek' and 'System.DayOfWeek'.
+
+DayOfWeek.Friday + 1L
+Operator '+' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int64'.
+
+DayOfWeek.Friday & 1
+Operator '&' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday | 1
+Operator '|' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+1 ^ DayOfWeek.Friday
+Operator '^' cannot be applied to operands of type 'System.Int32' and 'System.DayOfWeek'.
+
+DayOfWeek.Friday == 5
+Operator '==' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday > 1
+Operator '>' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Int32'.
+
+DayOfWeek.Friday == 0.0
+Operator '==' cannot be applied to operands of type 'System.DayOfWeek' and 'System.Double'.
+
+DayOfWeek.Friday == StringSplitOptions.None
+Operator '==' cannot be applied to operands of type 'System.DayOfWeek' and 'System.StringSplitOptions'.
+
+#######################################
 # Conditional operator branches without a common type
 
 true ? 1.0 : 2m
