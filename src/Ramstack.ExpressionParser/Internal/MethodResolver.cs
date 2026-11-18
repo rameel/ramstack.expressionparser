@@ -10,8 +10,7 @@ using System.Reflection;
 namespace Ramstack.Parsing.Internal;
 
 /// <summary>
-/// Represents a helper class that provides functionality to resolve a method
-/// from a set of candidate methods based on specified parameter types.
+/// Provides methods for resolving a method from a set of candidate methods based on the specified argument types.
 /// </summary>
 internal static class MethodResolver
 {

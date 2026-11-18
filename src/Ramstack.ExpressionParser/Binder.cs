@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Ramstack.Parsing;
 
 /// <summary>
-/// Provides an abstract base class for binding expressions.
+/// Represents the base class for binders that resolve the types, members, and methods referenced in an expression.
 /// </summary>
 public abstract class Binder
 {

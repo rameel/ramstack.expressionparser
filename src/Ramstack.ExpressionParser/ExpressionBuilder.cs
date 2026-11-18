@@ -6,7 +6,7 @@ using Ramstack.Parsing.Internal;
 namespace Ramstack.Parsing;
 
 /// <summary>
-/// Builds the <see cref="Expression"/> from the <see cref="Expr"/>.
+/// Represents a visitor that builds an <see cref="Expression"/> from an <see cref="Expr"/> tree.
 /// </summary>
 /// <param name="binder">The binder instance.</param>
 public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
