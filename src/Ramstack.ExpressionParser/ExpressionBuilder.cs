@@ -385,10 +385,13 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             : operandType;
 
         //
-        // Arithmetic and bitwise operators apply to the underlying type of an enum.
+        // C# does not define the unary '-' and '+' operators for an enum, and '~' applies to its underlying type.
         // A conversion takes the enum itself, so that converting it to object boxes the enum
         // rather than its underlying value.
         //
+        if (operandType.IsEnum && expr.UnaryType is UnaryType.Negate or UnaryType.UnaryPlus)
+            Error.NonApplicableUnaryOperator(expr, operandType);
+
         if (operandType.IsEnum && expr.UnaryType != UnaryType.Convert)
             operand = Expression.Convert(operand, underlyingType);
 

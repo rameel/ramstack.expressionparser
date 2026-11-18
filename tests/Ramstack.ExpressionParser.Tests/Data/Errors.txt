@@ -137,6 +137,15 @@ Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.I
 -1ul
 Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
 
+-DayOfWeek.Friday
+Unary operator '-' cannot be applied to operand of type 'System.DayOfWeek'.
+
++DayOfWeek.Friday
+Unary operator '+' cannot be applied to operand of type 'System.DayOfWeek'.
+
+-StringSplitOptions.RemoveEmptyEntries
+Unary operator '-' cannot be applied to operand of type 'System.StringSplitOptions'.
+
 #######################################
 # ! operator
 
