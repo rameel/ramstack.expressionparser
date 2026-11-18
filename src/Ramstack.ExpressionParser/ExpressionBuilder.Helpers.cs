@@ -185,7 +185,65 @@ partial class ExpressionBuilder
             list.Add(Convert(arg, parameter.ParameterType));
         }
 
+        //
+        // As in C#, a parameter array without arguments gets an empty array,
+        // and an omitted optional parameter gets its default value.
+        //
+        for (var i = list.Count; i < parameters.Length; i++)
+        {
+            var parameter = parameters[i];
+
+            if (parameter.GetCustomAttribute<ParamArrayAttribute>() is not null)
+            {
+                list.Add(Expression.NewArrayInit(parameter.ParameterType.GetElementType()!));
+            }
+            else if (parameter.IsOptional)
+            {
+                list.Add(CreateDefaultArgument(parameter));
+            }
+            else
+            {
+                //
+                // A required parameter is left without an argument only for a method that does not
+                // accept these arguments, so let Expression.Call report the argument count.
+                //
+                break;
+            }
+        }
+
         return list;
+
+        static Expression CreateDefaultArgument(ParameterInfo parameter)
+        {
+            var type = parameter.ParameterType;
+            var value = parameter.DefaultValue;
+
+            //
+            // A parameter declared with [Optional] and without a default value gets Type.Missing
+            // if its type is object, and the default value of its type otherwise, as in C#.
+            //
+            if (value is Missing)
+                return type == typeof(object)
+                    ? Expression.Constant(value, type)
+                    : Expression.Default(type);
+
+            //
+            // The default value of a struct, as in 'Guid guid = default', is also stored as null.
+            //
+            if (value is null)
+                return type.IsValueType && !type.IsNullable()
+                    ? Expression.Default(type)
+                    : Expression.Constant(null, type);
+
+            //
+            // The default value of a nullable enum is stored as its underlying integer.
+            //
+            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+            if (underlyingType.IsEnum && value.GetType() != underlyingType)
+                value = Enum.ToObject(underlyingType, value);
+
+            return Expression.Constant(value, type);
+        }
 
         static Expression Convert(Expression argument, Type conversionType)
         {

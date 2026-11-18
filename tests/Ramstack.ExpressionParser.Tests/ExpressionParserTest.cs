@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 
 using Ramstack.Parsing.Expressions;
 
@@ -147,8 +148,22 @@ public class ExpressionParserTest
     [TestCase("Count(Numbers)", 1)]
     [TestCase("Count(Words, Words)", 2)]
     [TestCase("""string.Join(",", "a", "b")""", "a,b")]
+    [TestCase("Sum()", 0)]
+    [TestCase("Count()", 0)]
     public void Evaluate_ElementsForParamArray_CreatesArray(string expression, object expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.EqualTo(expected));
+
+    [TestCase("Defaults()", "1 Monday True null")]
+    [TestCase("""Defaults(5, DayOfWeek.Friday, Guid.NewGuid(), "a")""", "5 Friday False a")]
+    [TestCase("Mixed(1)", "1 2 0")]
+    [TestCase("Mixed(1, 3)", "1 3 0")]
+    [TestCase("Mixed(1, 3, 4, 5)", "1 3 2")]
+    [TestCase("WithMissing()", "Missing 0")]
+    [TestCase("""string.Format("x")""", "x")]
+    [TestCase(""" "a,b".Split(",").Length """, 2)]
+    [TestCase(""" "a,b".Split(',').Length """, 2)]
+    public void Evaluate_OmittedOptionalArguments_UsesDefaultValues(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new OptionalContext()), Is.EqualTo(expected));
 
     [TestCase("!Flag", false)]
     [TestCase("!NullableFlag", true)]
@@ -173,6 +188,25 @@ public class ExpressionParserTest
     [TestCase("Pick('a')", "char")]
     public void Evaluate_ByteArgument_DoesNotSelectCharOverload(string expression, string expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new OverloadContext()), Is.EqualTo(expected));
+
+    [TestCase("WithDefault(1)", "(int)")]
+    [TestCase("WithDefault(1, 2)", "(int, int = 0)")]
+    [TestCase("ParamsOrDefault(1)", "(int, int = 0)")]
+    [TestCase("Expanded(1, 2, 3)", "(int, int, params int[])")]
+    [TestCase("ExpandedOrDefault(1)", "(int, params int[])")]
+    public void Evaluate_OmittedOptionalArguments_SelectsOverloadAsCSharp(string expression, string expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new OverloadContext()), Is.EqualTo(expected));
+
+    [TestCase("BothDefaults(1)")]
+    [TestCase("ExpandedBothDefaults(1)")]
+    public void Parse_OverloadsWithDefaultArguments_ReturnsAmbiguityError(string expression)
+    {
+        var parameter = Expression.Parameter(typeof(OverloadContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
+    }
 
     [Test]
     public void Parse_ByteArgumentForCharParameter_ReturnsError()
@@ -372,6 +406,24 @@ public class ExpressionParserTest
         public static string Pick(char _) => "char";
         public static string Pick(int _) => "int";
         public static string OnlyChar(char _) => "char";
+
+        public static string WithDefault(int a) => "(int)";
+        public static string WithDefault(int a, int b = 0) => "(int, int = 0)";
+
+        public static string ParamsOrDefault(int a, params int[] rest) => "(int, params int[])";
+        public static string ParamsOrDefault(int a, int b = 0) => "(int, int = 0)";
+
+        public static string Expanded(int a, params int[] rest) => "(int, params int[])";
+        public static string Expanded(int a, int b, params int[] rest) => "(int, int, params int[])";
+
+        public static string ExpandedOrDefault(int a, params int[] rest) => "(int, params int[])";
+        public static string ExpandedOrDefault(int a, int b = 0, params int[] rest) => "(int, int = 0, params int[])";
+
+        public static string BothDefaults(int a, int b = 0) => "(int, int = 0)";
+        public static string BothDefaults(int a, int b = 0, int c = 0) => "(int, int = 0, int = 0)";
+
+        public static string ExpandedBothDefaults(int a, int b = 0, params int[] rest) => "(int, int = 0, params int[])";
+        public static string ExpandedBothDefaults(int a, int b = 0, int c = 0, params int[] rest) => "(int, int = 0, int = 0, params int[])";
     }
 
     public class ParamArrayContext
@@ -383,5 +435,17 @@ public class ExpressionParserTest
         public static int Sum(params int[] values) => values.Sum();
         public static int Count(params object[] values) => values.Length;
         public bool IsWords(params string[] values) => ReferenceEquals(values, Words);
+    }
+
+    public class OptionalContext
+    {
+        public static string Defaults(int number = 1, DayOfWeek? day = DayOfWeek.Monday, Guid id = default, string? text = null) =>
+            $"{number} {day} {id == Guid.Empty} {text ?? "null"}";
+
+        public static string Mixed(int a, int b = 2, params int[] rest) =>
+            $"{a} {b} {rest.Length}";
+
+        public static string WithMissing([Optional] object value, [Optional] int number) =>
+            $"{value.GetType().Name} {number}";
     }
 }
