@@ -45,7 +45,7 @@ partial class ExpressionBuilder
         if (TypeUtils.CanConvertPrimitive(expression.Type, conversionType))
             return Expression.Convert(expression, conversionType);
 
-        var conversion = TypeUtils.FindConversionOperator(expression.Type, typeof(bool));
+        var conversion = TypeUtils.FindConversionOperator(expression.Type, conversionType);
         if (conversion is not null)
             return Expression.Convert(expression, conversionType, conversion);
 
