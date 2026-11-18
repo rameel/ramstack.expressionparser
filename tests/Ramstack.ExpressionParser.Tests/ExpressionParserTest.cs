@@ -174,6 +174,23 @@ public class ExpressionParserTest
     public void Evaluate_ByteArgument_DoesNotSelectCharOverload(string expression, string expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new OverloadContext()), Is.EqualTo(expected));
 
+    [TestCase("WithDefault(1)", "(int)")]
+    [TestCase("WithDefault(1, 2)", "(int, int = 0)")]
+    [TestCase("Expanded(1, 2, 3)", "(int, int, params int[])")]
+    public void Evaluate_OmittedOptionalArguments_SelectsOverloadAsCSharp(string expression, string expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new OverloadContext()), Is.EqualTo(expected));
+
+    [TestCase("BothDefaults(1)")]
+    [TestCase("ExpandedBothDefaults(1)")]
+    public void Parse_OverloadsWithDefaultArguments_ReturnsAmbiguityError(string expression)
+    {
+        var parameter = Expression.Parameter(typeof(OverloadContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
+    }
+
     [Test]
     public void Parse_ByteArgumentForCharParameter_ReturnsError()
     {
@@ -372,6 +389,18 @@ public class ExpressionParserTest
         public static string Pick(char _) => "char";
         public static string Pick(int _) => "int";
         public static string OnlyChar(char _) => "char";
+
+        public static string WithDefault(int a) => "(int)";
+        public static string WithDefault(int a, int b = 0) => "(int, int = 0)";
+
+        public static string Expanded(int a, params int[] rest) => "(int, params int[])";
+        public static string Expanded(int a, int b, params int[] rest) => "(int, int, params int[])";
+
+        public static string BothDefaults(int a, int b = 0) => "(int, int = 0)";
+        public static string BothDefaults(int a, int b = 0, int c = 0) => "(int, int = 0, int = 0)";
+
+        public static string ExpandedBothDefaults(int a, int b = 0, params int[] rest) => "(int, int = 0, params int[])";
+        public static string ExpandedBothDefaults(int a, int b = 0, int c = 0, params int[] rest) => "(int, int = 0, int = 0, params int[])";
     }
 
     public class ParamArrayContext

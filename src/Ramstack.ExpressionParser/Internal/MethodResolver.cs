@@ -275,21 +275,48 @@ internal static class MethodResolver
         // were the most specific type on....
         if (p1Less == p2Less)
         {
-            // if we cannot tell which is a better match based on parameter types (p1Less == p2Less),
-            // let's see which one has the most matches without using the params array (the longer one wins).
             if (!p1Less)
             {
-                if (p1.Length > p2.Length)
-                    return 1;
+                var usesDefaults1 = UsesDefaultArguments(p1, paramArrayType1, types.Length);
+                var usesDefaults2 = UsesDefaultArguments(p2, paramArrayType2, types.Length);
 
-                if (p2.Length > p1.Length)
-                    return 2;
+                //
+                // As in C#, a method whose parameters all get arguments is better than a method
+                // that needs default arguments, and methods that both need them are ambiguous.
+                //
+                if (usesDefaults1 != usesDefaults2)
+                    return usesDefaults1 ? 2 : 1;
+
+                //
+                // Methods without default arguments differ in length only in their expanded form,
+                // and the one with more declared parameters is better.
+                //
+                if (!usesDefaults1)
+                {
+                    if (p1.Length > p2.Length)
+                        return 1;
+
+                    if (p2.Length > p1.Length)
+                        return 2;
+                }
             }
 
             return 0;
         }
 
         return p1Less ? 1 : 2;
+
+        static bool UsesDefaultArguments(ParameterInfo[] parameters, Type? paramArrayType, int argumentCount)
+        {
+            //
+            // In the expanded form, the parameter array takes the remaining arguments, possibly none.
+            //
+            var count = paramArrayType is not null
+                ? parameters.Length - 1
+                : parameters.Length;
+
+            return count > argumentCount;
+        }
     }
 
     private static int FindMostSpecificType(Type c1, Type c2, Type t)
