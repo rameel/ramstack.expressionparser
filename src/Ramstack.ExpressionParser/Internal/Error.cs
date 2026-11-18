@@ -114,7 +114,7 @@ internal static class Error
     /// <summary>
     /// Throws a <see cref="ParseErrorException"/> with a custom error message.
     /// </summary>
-    /// <param name="message">The custom error message, or <c>null</c> for a default message.</param>
+    /// <param name="message">The custom error message, or <see langword="null" /> for a default message.</param>
     /// <exception cref="ParseErrorException">Always thrown with the specified <paramref name="message"/>.</exception>
     [DoesNotReturn]
     public static void Throw(string? message) =>

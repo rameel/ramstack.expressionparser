@@ -12,7 +12,7 @@ internal static class ReflectionExtensions
     /// </summary>
     /// <param name="type">The <see cref="Type"/> to evaluate.</param>
     /// <returns>
-    /// <c>true</c> if the type is a <see cref="Nullable{T}"/> type; otherwise, <c>false</c>.
+    /// <see langword="true" /> if the type is a <see cref="Nullable{T}"/> type; otherwise, <see langword="false" />.
     /// </returns>
     public static bool IsNullable(this Type type) =>
         type.IsGenericType && !type.IsGenericTypeDefinition && type.GetGenericTypeDefinition() == typeof(Nullable<>);
@@ -43,7 +43,7 @@ internal static class ReflectionExtensions
     /// </summary>
     /// <param name="type">The <see cref="Type"/> to evaluate.</param>
     /// <returns>
-    /// <c>true</c> if the type is declared as static; otherwise, <c>false</c>.
+    /// <see langword="true" /> if the type is declared as static; otherwise, <see langword="false" />.
     /// </returns>
     public static bool IsStatic(this Type type) =>
         type.IsClass && type.IsAbstract && type.IsSealed;
@@ -53,7 +53,7 @@ internal static class ReflectionExtensions
     /// </summary>
     /// <param name="memberInfo">The <see cref="MemberInfo"/> instance representing the member to evaluate.</param>
     /// <returns>
-    /// <c>true</c> if the member is declared as static; otherwise, <c>false</c>.
+    /// <see langword="true" /> if the member is declared as static; otherwise, <see langword="false" />.
     /// The determination is made as follows:
     /// <list type="bullet">
     ///   <item><description>For constructors, checks <see cref="MethodBase.IsStatic"/>.</description></item>
