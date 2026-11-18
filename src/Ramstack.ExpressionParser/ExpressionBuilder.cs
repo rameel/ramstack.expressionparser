@@ -53,6 +53,15 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
         var lhsType = lhs.Type;
         var rhsType = rhs.Type;
 
+        //
+        // The null literal converts to a nullable value type, so opposite an operand of such a type
+        // it takes that type, as in 'x == null' or 'x ?? null'.
+        //
+        if (lhsType.IsNullable() && IsNullLiteral(expr.Right))
+            rhs = Expression.Constant(null, lhsType);
+        else if (rhsType.IsNullable() && IsNullLiteral(expr.Left))
+            lhs = Expression.Constant(null, rhsType);
+
         var factory = ResolveBinaryOperatorFactory(expr.Operator.Name);
 
         switch (expr.Operator.Name)
@@ -71,14 +80,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                 break;
 
             case "??":
-                if (lhsType.IsValueType && !lhsType.IsNullable())
-                    Error.NonApplicableBinaryOperator(expr.Operator, lhsType, rhsType);
-
-                rhs = ApplyImplicitConversion(rhs, lhsType);
-                if (rhs is null)
-                    Error.NonApplicableBinaryOperator(expr.Operator, lhsType, rhsType);
-
-                break;
+                return ApplyNullCoalescing(expr.Operator, lhs, rhs);
 
             case "+":
                 if (lhsType != typeof(string) && rhsType != typeof(string))
@@ -379,21 +381,24 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     {
         var operand = Visit(expr.Operand);
 
+        //
+        // For an operand of a nullable value type, the operators below are lifted:
+        // they apply to the underlying type and return the nullable form of their result type.
+        //
         var operandType = operand.Type;
-        var underlyingType = operandType.IsEnum
-            ? operandType.GetEnumUnderlyingType()
-            : operandType;
+        var nonNullableType = operandType.GetNonNullableType();
+        var lifted = operandType.IsNullable();
 
         //
         // C# does not define the unary '-' and '+' operators for an enum, and '~' applies to its underlying type.
         // A conversion takes the enum itself, so that converting it to object boxes the enum
         // rather than its underlying value.
         //
-        if (operandType.IsEnum && expr.UnaryType is UnaryType.Negate or UnaryType.UnaryPlus)
+        if (nonNullableType.IsEnum && expr.UnaryType is UnaryType.Negate or UnaryType.UnaryPlus)
             Error.NonApplicableUnaryOperator(expr, operandType);
 
-        if (operandType.IsEnum && expr.UnaryType != UnaryType.Convert)
-            operand = Expression.Convert(operand, underlyingType);
+        if (nonNullableType.IsEnum && expr.UnaryType != UnaryType.Convert)
+            operand = ConvertOperand(operand, nonNullableType.GetEnumUnderlyingType(), lifted);
 
         switch (expr.UnaryType, operand)
         {
@@ -407,8 +412,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             // C# has no negation operator for uint, so the operand is converted to long
             // and then negated, which keeps the sign of the result.
             //
-            case (UnaryType.Negate, _) when operand.Type == typeof(uint):
-                operand = Expression.Convert(operand, typeof(long));
+            case (UnaryType.Negate, _) when operand.Type.GetNonNullableType() == typeof(uint):
+                operand = ConvertOperand(operand, typeof(long), lifted);
                 break;
 
             case (not UnaryType.Convert, _):
@@ -427,7 +432,6 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                     // Allow only the logical negation, as C# does. For a nullable operand,
                     // Expression.Not lifts the negation of the underlying type.
                     //
-                    var nonNullableType = Nullable.GetUnderlyingType(operandType) ?? operandType;
                     if (nonNullableType == typeof(bool))
                         return Expression.Not(operand);
 
@@ -449,7 +453,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
                 case UnaryType.OnesComplement:
                     operand = Expression.OnesComplement(operand);
-                    return operandType.IsEnum
+                    return nonNullableType.IsEnum
                         ? Expression.Convert(operand, operandType)
                         : operand;
 
