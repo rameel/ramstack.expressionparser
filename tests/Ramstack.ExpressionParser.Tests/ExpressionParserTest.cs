@@ -165,6 +165,15 @@ public class ExpressionParserTest
     public void Evaluate_OmittedOptionalArguments_UsesDefaultValues(string expression, object expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new OptionalContext()), Is.EqualTo(expected));
 
+    [TestCase("Numbers.Length", 3)]
+    [TestCase("Matrix.Length", 6)]
+    [TestCase("Cube.Length", 8)]
+    [TestCase("Jagged.Length", 2)]
+    [TestCase("Jagged[1].Length", 3)]
+    [TestCase("Untyped.Length", 2)]
+    public void Evaluate_ArrayLength_ReturnsNumberOfElements(string expression, int expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new ArrayContext()), Is.EqualTo(expected));
+
     [TestCase("!Flag", false)]
     [TestCase("!NullableFlag", true)]
     [TestCase("!WithLogicalNot", true)]
@@ -482,5 +491,14 @@ public class ExpressionParserTest
 
         public static string WithMissing([Optional] object value, [Optional] int number) =>
             $"{value.GetType().Name} {number}";
+    }
+
+    public class ArrayContext
+    {
+        public int[] Numbers { get; } = [1, 2, 3];
+        public int[,] Matrix { get; } = new int[2, 3];
+        public int[,,] Cube { get; } = new int[2, 2, 2];
+        public int[][] Jagged { get; } = [[1], [1, 2, 3]];
+        public Array Untyped { get; } = new[] { "a", "b" };
     }
 }
