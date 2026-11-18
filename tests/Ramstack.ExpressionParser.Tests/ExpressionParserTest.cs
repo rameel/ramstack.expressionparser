@@ -169,6 +169,20 @@ public class ExpressionParserTest
     public void Evaluate_DelegateMember_CallsDelegateAndItsMethods(string expression, object expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new DelegateContext()), Is.EqualTo(expected));
 
+    [TestCase("StaticDelegates.Tripler(2)")]
+    [TestCase("StaticDelegates.Tripler.Invoke(2)")]
+    public void Evaluate_StaticDelegateMemberOfType_CallsDelegate(string expression)
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(typeof(StaticDelegates));
+
+        var result = ExpressionParser.Parse(expression, binder);
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+
+        var value = Expression.Lambda<Func<int>>(result.Value!).Compile()();
+        Assert.That(value, Is.EqualTo(6));
+    }
+
     [TestCase("Defaults()", "1 Monday True null")]
     [TestCase("""Defaults(5, DayOfWeek.Friday, Guid.NewGuid(), "a")""", "5 Friday False a")]
     [TestCase("Mixed(1)", "1 2 0")]
@@ -500,6 +514,11 @@ public class ExpressionParserTest
     public class DelegateContext
     {
         public Func<int, int> Doubler { get; } = x => x * 2;
+    }
+
+    public static class StaticDelegates
+    {
+        public static Func<int, int> Tripler { get; } = x => x * 3;
     }
 
     public class OptionalContext
