@@ -36,6 +36,7 @@ public class ExpressionParserTest
             list.Add(["""Guid.Empty""", Guid.Empty]);
             list.Add(["""1 :> DayOfWeek :> object""", DayOfWeek.Monday]);
             list.Add(["""(DayOfWeek.Friday :> object).ToString()""", "Friday"]);
+            list.Add(["""-(DayOfWeek.Friday :> int)""", -5]);
             return list;
         }
     }
