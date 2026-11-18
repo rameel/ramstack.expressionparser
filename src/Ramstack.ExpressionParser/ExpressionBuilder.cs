@@ -409,11 +409,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                 operand = Expression.Convert(operand, typeof(long));
                 break;
 
-            case (not UnaryType.Convert, _) when underlyingType == typeof(byte):
-            case (not UnaryType.Convert, _) when underlyingType == typeof(sbyte):
-            case (not UnaryType.Convert, _) when underlyingType == typeof(short):
-            case (not UnaryType.Convert, _) when underlyingType == typeof(ushort):
-                operand = Expression.Convert(operand, typeof(int));
+            case (not UnaryType.Convert, _):
+                operand = ApplyUnaryNumericPromotion(operand);
                 break;
         }
 

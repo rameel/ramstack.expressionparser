@@ -134,6 +134,16 @@ public class ExpressionParserTest
     public void Evaluate_NegatedUInt32_ReturnsNegatedInt64(string expression, long expected) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<long>().And.EqualTo(expected));
 
+    [TestCase("-'a'", -97)]
+    [TestCase("+'a'", 97)]
+    [TestCase("~'a'", -98)]
+    [TestCase("'a' << 1", 194)]
+    [TestCase("'a' >> 1", 48)]
+    [TestCase("'a' >>> 1", 48)]
+    [TestCase("1 << 'a'", 2)]
+    public void Evaluate_CharOperand_PromotesToInt32(string expression, int expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<int>().And.EqualTo(expected));
+
     [TestCase("Sum(Numbers)", 6)]
     [TestCase("Count(Words)", 2)]
     [TestCase("IsWords(Words)", true)]
