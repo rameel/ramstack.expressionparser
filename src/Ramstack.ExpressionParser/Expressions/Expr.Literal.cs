@@ -15,7 +15,7 @@ partial class Expr
         /// <summary>
         /// Deconstructs the literal expression into its value.
         /// </summary>
-        /// <param name="value">The constant value of the literal, which may be <c>null</c>.</param>
+        /// <param name="value">The constant value of the literal, which may be <see langword="null" />.</param>
         public void Deconstruct(out object? value) =>
             value = Value;
 

@@ -67,7 +67,7 @@ public static class TypeUtils
     /// </summary>
     /// <param name="type">The <see cref="Type"/> to evaluate.</param>
     /// <returns>
-    /// <c>true</c> if the type is an integer type (signed or unsigned); otherwise, <c>false</c>.
+    /// <see langword="true" /> if the type is an integer type (signed or unsigned); otherwise, <see langword="false" />.
     /// </returns>
     /// <remarks>
     /// This method checks for the following integer types:

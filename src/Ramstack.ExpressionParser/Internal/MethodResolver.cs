@@ -22,7 +22,7 @@ internal static class MethodResolver
     /// <param name="match">An array of methods representing the candidates for matching.</param>
     /// <param name="argumentTypes">The argument types used to locate a matching method.</param>
     /// <returns>
-    /// The resolved <see cref="MethodInfo"/> if a matching method is found; otherwise, <c>null</c>.
+    /// The resolved <see cref="MethodInfo"/> if a matching method is found; otherwise, <see langword="null" />.
     /// </returns>
     public static MethodBase? ResolveMethod(IReadOnlyList<MethodBase> match, Type[] argumentTypes)
     {
