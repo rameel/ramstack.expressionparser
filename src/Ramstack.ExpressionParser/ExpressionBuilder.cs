@@ -260,8 +260,11 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
             if (instance is not null)
             {
-                Debug.Assert(method is null && typeof(Delegate).IsAssignableFrom(instance.Type)
-                    || method is not null && !typeof(Delegate).IsAssignableFrom(instance.Type));
+                //
+                // Without a method, the instance is a delegate to invoke. A method can also be called
+                // on a delegate, as in 'func.Invoke(1)' or 'func.ToString()'.
+                //
+                Debug.Assert(method is not null || typeof(Delegate).IsAssignableFrom(instance.Type));
 
                 if (method is null)
                 {
