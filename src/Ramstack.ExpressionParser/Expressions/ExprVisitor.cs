@@ -1,8 +1,7 @@
 namespace Ramstack.Parsing.Expressions;
 
 /// <summary>
-/// Provides an abstract base class for visiting or rewriting expression trees,
-/// producing a result of type <typeparamref name="T"/>.
+/// Represents a visitor or rewriter for expression trees that produces a result of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of the result produced by visiting the expression tree nodes.</typeparam>
 public abstract class ExprVisitor<T>
