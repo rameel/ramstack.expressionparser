@@ -44,6 +44,6 @@ partial class Expr
 
         /// <inheritdoc />
         public override string ToString() =>
-            $"{Test} ? {IfTrue} : {IfFalse}";
+            $"({Test} ? {IfTrue} : {IfFalse})";
     }
 }

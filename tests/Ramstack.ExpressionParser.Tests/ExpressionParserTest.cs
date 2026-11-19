@@ -698,6 +698,48 @@ public class ExpressionParserTest
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
+    [TestCase("1 :> long + 1", "((1 :> long) + 1)")]
+    [TestCase("1 + 2 :> long", "(1 + (2 :> long))")]
+    [TestCase("a == b :> bool", "(a == (b :> bool))")]
+    [TestCase("-x :> int", "-((x :> int))")]
+    [TestCase("a ? b : c :> int", "(a ? b : (c :> int))")]
+    public void ToString_ConversionOperand_ParenthesizesConversion(string source, string expected) =>
+        Assert.That(ExpressionParser.Parser.Parse(source).Value!.ToString(), Is.EqualTo(expected));
+
+    [TestCaseSource(nameof(BuiltOperandSource))]
+    public void ToString_BuiltTreeOperand_ParenthesizesOperand(Expr expr, string expected) =>
+        Assert.That(expr.ToString(), Is.EqualTo(expected));
+
+    private static IEnumerable<TestCaseData> BuiltOperandSource
+    {
+        get
+        {
+            //
+            // The parser wraps such operands in Expr.Parenthesized, but a tree can be built without it.
+            //
+            var conditional = new Expr.Conditional(Reference("a"), Reference("b"), Reference("c"));
+            var conversion = new Expr.Unary(new Identifier("object"), UnaryType.Convert, Reference("x"));
+
+            yield return Case("conditional in binary",
+                new Expr.Binary(new Identifier("+"), conditional, new Expr.Literal(1)),
+                "((a ? b : c) + 1)");
+
+            yield return Case("conditional in conversion",
+                new Expr.Unary(new Identifier("int"), UnaryType.Convert, conditional),
+                "((a ? b : c) :> int)");
+
+            yield return Case("conversion in member access",
+                new Expr.Call(new Expr.MemberAccess(conversion, Reference("ToString")), []),
+                "(x :> object).ToString()");
+
+            static Expr Reference(string name) =>
+                new Expr.Reference(new Identifier(name));
+
+            static TestCaseData Case(string name, Expr expr, string expected) =>
+                new TestCaseData(expr, expected).SetArgDisplayNames(name);
+        }
+    }
+
     private static void AssertNullableResult(string expression, Type type, object? expected) =>
         AssertResult(new NullableContext(), expression, type, expected);
 
