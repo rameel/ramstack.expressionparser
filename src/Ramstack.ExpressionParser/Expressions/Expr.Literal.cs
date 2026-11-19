@@ -6,6 +6,7 @@ partial class Expr
     /// Represents a literal value in an expression tree, such as a number, a string, a character,
     /// a Boolean value, or <see langword="null" />.
     /// </summary>
+    /// <param name="value">The constant value of the literal, which may be <see langword="null" />.</param>
     public sealed class Literal(object? value) : Expr(ExprKind.Literal)
     {
         /// <summary>

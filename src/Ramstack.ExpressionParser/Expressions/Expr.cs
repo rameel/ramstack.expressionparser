@@ -3,6 +3,7 @@ namespace Ramstack.Parsing.Expressions;
 /// <summary>
 /// Represents a node in an expression tree, serving as the base class for all expression types.
 /// </summary>
+/// <param name="kind">The kind of this expression node.</param>
 public abstract partial class Expr(ExprKind kind)
 {
     /// <summary>

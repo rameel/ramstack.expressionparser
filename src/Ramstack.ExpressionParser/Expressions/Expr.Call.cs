@@ -5,6 +5,8 @@ partial class Expr
     /// <summary>
     /// Represents a method or delegate call in an expression tree, consisting of a target expression and its arguments.
     /// </summary>
+    /// <param name="expression">The <see cref="Expr" /> representing the target of the call.</param>
+    /// <param name="parameters">The <see cref="IReadOnlyList{T}" /> of <see cref="Expr" /> instances representing the call's arguments.</param>
     [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords",
         Justification = "The type is named after the ExprKind.Call expression kind, and renaming it would break the public API.")]
     public sealed class Call(Expr expression, IReadOnlyList<Expr> parameters)
