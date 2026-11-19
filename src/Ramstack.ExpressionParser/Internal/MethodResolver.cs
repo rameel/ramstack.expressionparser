@@ -21,7 +21,7 @@ internal static class MethodResolver
     /// <param name="argumentTypes">The argument types used to locate a matching method.</param>
     /// <returns>
     /// The method that best matches the argument types, or <see langword="null" /> if no candidate
-    /// accepts the argument types or several candidates match them equally well.
+    /// accepts the argument types or none of them matches better than all the others.
     /// </returns>
     public static MethodBase? ResolveMethod(IReadOnlyList<MethodBase> match, Type[] argumentTypes)
     {
@@ -199,10 +199,17 @@ internal static class MethodResolver
         if (currentIndex == 1)
             return candidates[0];
 
+        //
+        // As in C#, the method to invoke must be more specific than every other candidate.
+        // Such a method wins each comparison, so the walk below always ends on it. A candidate
+        // that ties with the current winner does not stop the walk, since a later candidate
+        // can be more specific than both.
+        //
         var min = 0;
+        var ambiguous = false;
+
         for (var i = 1; i < currentIndex; i++)
         {
-            // Walk all of the methods looking the most specific method to invoke
             var newMin = FindMostSpecificMethod(
                 candidates[min],
                 parameterArrayTypes[min],
@@ -210,12 +217,35 @@ internal static class MethodResolver
                 parameterArrayTypes[i],
                 argumentTypes);
 
-            // Ambiguous match found
             if (newMin == 0)
-                return null;
-
-            if (newMin == 2)
+            {
+                ambiguous = true;
+            }
+            else if (newMin == 2)
+            {
                 min = i;
+                ambiguous = false;
+            }
+        }
+
+        if (ambiguous)
+            return null;
+
+        //
+        // The candidates before the winner may not have been compared with it,
+        // so check that the winner is also more specific than each of them.
+        //
+        for (var i = 0; i < min; i++)
+        {
+            var result = FindMostSpecificMethod(
+                candidates[min],
+                parameterArrayTypes[min],
+                candidates[i],
+                parameterArrayTypes[i],
+                argumentTypes);
+
+            if (result != 1)
+                return null;
         }
 
         return candidates[min];
