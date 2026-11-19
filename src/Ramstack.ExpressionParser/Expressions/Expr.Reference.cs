@@ -3,7 +3,7 @@ namespace Ramstack.Parsing.Expressions;
 partial class Expr
 {
     /// <summary>
-    /// Represents a reference to a variable, parameter, or member in an expression tree.
+    /// Represents a reference to a type or member by its name in an expression tree.
     /// </summary>
     public sealed class Reference(Identifier value) : Expr(ExprKind.Reference)
     {

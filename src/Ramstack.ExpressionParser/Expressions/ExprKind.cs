@@ -6,10 +6,10 @@ namespace Ramstack.Parsing.Expressions;
 public enum ExprKind
 {
     /// <summary>
-    /// Represents a reference to a variable, parameter, or member in the expression.
+    /// Represents a reference to a type or member by its name.
     /// </summary>
     /// <example>
-    /// In the expression <c>x</c>, this would indicate a reference to the variable "x".
+    /// In the expression <c>Math.PI</c>, <c>Math</c> is a reference to a type, and <c>PI</c> is a reference to its member.
     /// </example>
     Reference,
 

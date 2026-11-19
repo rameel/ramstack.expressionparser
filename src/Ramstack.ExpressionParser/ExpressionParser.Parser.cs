@@ -23,7 +23,7 @@ partial class ExpressionParser
     /// <remarks>
     /// Parsing stops with a fatal error if the expression tree is deeper than 256 levels.
     /// Each operator, member access, call, indexer, and pair of parentheses adds a level,
-    /// so a chain such as <c>a + b + c</c> counts as deeply as the nested expression <c>((a + b) + c)</c>.
+    /// so a chain such as <c>a + b + c</c> gets one level deeper with each operator.
     /// Parsing also stops with a fatal error if the thread's stack runs short. On a small stack, this can happen
     /// before the limit is reached for deeply nested parentheses, arguments, indexers, and conditional expressions.
     /// </remarks>

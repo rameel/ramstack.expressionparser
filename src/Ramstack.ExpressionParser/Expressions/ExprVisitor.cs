@@ -7,7 +7,7 @@ namespace Ramstack.Parsing.Expressions;
 public abstract class ExprVisitor<T>
 {
     /// <summary>
-    /// Dispatches an expression to the appropriate specialized visit method based on its <see cref="Expr.Kind"/>.
+    /// Dispatches the expression to the visit method for its node type by calling <see cref="Expr.Accept{T}"/>.
     /// </summary>
     /// <param name="expr">The <see cref="Expr"/> to visit.</param>
     /// <returns>

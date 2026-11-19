@@ -15,13 +15,13 @@ namespace Ramstack.Parsing.Internal;
 internal static class MethodResolver
 {
     /// <summary>
-    /// Resolves the most appropriate method from the provided array of methods
-    /// that matches the specified parameter types.
+    /// Resolves the method from the specified candidates that best matches the specified argument types.
     /// </summary>
-    /// <param name="match">An array of methods representing the candidates for matching.</param>
+    /// <param name="match">The candidate methods.</param>
     /// <param name="argumentTypes">The argument types used to locate a matching method.</param>
     /// <returns>
-    /// The resolved <see cref="MethodInfo"/> if a matching method is found; otherwise, <see langword="null" />.
+    /// The method that best matches the argument types, or <see langword="null" /> if no candidate
+    /// accepts the argument types or several candidates match them equally well.
     /// </returns>
     public static MethodBase? ResolveMethod(IReadOnlyList<MethodBase> match, Type[] argumentTypes)
     {
