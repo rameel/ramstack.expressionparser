@@ -6,7 +6,7 @@ partial class Expr
     /// Represents a unary operation expression in an expression tree, consisting of an operator and a single operand.
     /// </summary>
     /// <param name="operator">The <see cref="Identifier"/> representing the unary operator, e.g., <c>"-"</c> or <c>"int"</c>.</param>
-    /// <param name="unaryType">The <see cref="UnaryType"/> specifying the kind of unary operation (e.g., arithmetic or conversion).</param>
+    /// <param name="unaryType">The <see cref="UnaryType"/> specifying the kind of unary operation, such as negation or conversion.</param>
     /// <param name="operand">The <see cref="Expr"/> on which the unary operation is applied.</param>
     public sealed class Unary(Identifier @operator, UnaryType unaryType, Expr operand)
         : Expr(ExprKind.Unary, operand.Depth + 1)
@@ -23,7 +23,7 @@ partial class Expr
         /// Gets the type of the unary operation.
         /// </summary>
         /// <value>
-        /// A <see cref="UnaryType"/> value indicating the nature of the operation, e.g., arithmetic or conversion.
+        /// A <see cref="UnaryType"/> value indicating the kind of operation, such as negation or conversion.
         /// </value>
         public UnaryType UnaryType { get; } = unaryType;
 
@@ -42,9 +42,9 @@ partial class Expr
         /// <param name="operand">The <see cref="Expr"/> on which the operation is applied.</param>
         /// <example>
         /// <code>
-        /// var unary = new Unary(new Identifier("-"), UnaryType.Arithmetic, new Identifier("x"));
-        /// unary.Deconstruct(out UnaryType type, out Expr op);
-        /// // type is UnaryType.Arithmetic, op is Identifier("x")
+        /// var unary = new Expr.Unary(new Identifier("-"), UnaryType.Negate, new Expr.Reference(new Identifier("x")));
+        /// var (type, operand) = unary;
+        /// // type is UnaryType.Negate, operand is the reference to x
         /// </code>
         /// </example>
         public void Deconstruct(out UnaryType unaryType, out Expr operand) =>
@@ -58,9 +58,9 @@ partial class Expr
         /// <param name="operand">The <see cref="Expr"/> on which the operation is applied.</param>
         /// <example>
         /// <code>
-        /// var unary = new Unary(new Identifier("-"), UnaryType.Arithmetic, new Identifier("x"));
-        /// unary.Deconstruct(out Identifier op, out UnaryType type, out Expr operand);
-        /// // op.Name is "-", type is UnaryType.Arithmetic, operand is Identifier("x")
+        /// var unary = new Expr.Unary(new Identifier("-"), UnaryType.Negate, new Expr.Reference(new Identifier("x")));
+        /// var (op, type, operand) = unary;
+        /// // op.Name is "-", type is UnaryType.Negate, operand is the reference to x
         /// </code>
         /// </example>
         public void Deconstruct(out Identifier @operator, out UnaryType unaryType, out Expr operand) =>
@@ -75,7 +75,7 @@ partial class Expr
 
         /// <inheritdoc />
         /// <returns>
-        /// A string representation of the unary expression, e.g., <c>-x</c> for operators or <c>x :> int</c> for conversions.
+        /// A string representation of the unary expression, e.g., <c>-(x)</c> for operators or <c>x :> int</c> for conversions.
         /// </returns>
         public override string ToString() => UnaryType switch
         {

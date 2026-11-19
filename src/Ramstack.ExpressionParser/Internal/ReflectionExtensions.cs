@@ -109,7 +109,7 @@ internal static class ReflectionExtensions
     }
 
     /// <summary>
-    /// Determines the runtime type associated with the specified member.
+    /// Determines the type associated with the specified member.
     /// </summary>
     /// <param name="memberInfo">The <see cref="MemberInfo"/> instance representing the member to evaluate.</param>
     /// <returns>

@@ -132,12 +132,13 @@ public static class TypeUtils
     }
 
     /// <summary>
-    /// Attempts to find an implicit conversion operator.
+    /// Attempts to find an implicit conversion operator declared in the source type.
     /// </summary>
     /// <param name="source">The type to convert from.</param>
     /// <param name="target">The type to convert to.</param>
     /// <returns>
-    /// The conversion operator.
+    /// The conversion operator, or <see langword="null" /> if <paramref name="source"/> does not declare
+    /// an implicit conversion to <paramref name="target"/>.
     /// </returns>
     public static MethodInfo? FindConversionOperator(Type source, Type target)
     {

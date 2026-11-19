@@ -39,7 +39,7 @@ public abstract class Binder
     public abstract MethodInfo? BindToMethod(Type? type, Identifier methodName, Type[] parameterTypes, bool isStatic);
 
     /// <summary>
-    /// Attempts to bind to a member (field, property, or method) based on the specified type and member name.
+    /// Attempts to bind to a member (field or property) based on the specified type and member name.
     /// </summary>
     /// <param name="type">The <see cref="Type"/> from which to select the member.</param>
     /// <param name="memberName">The <see cref="Identifier"/> representing the name of the member to bind.</param>

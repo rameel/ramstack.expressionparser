@@ -67,7 +67,7 @@ replace `x:int` with `x :> int`.
 ### Limits
 
 An expression tree can be at most 256 levels deep. Each operator, member access, call, indexer,
-and pair of parentheses adds a level, so `a + b + c` counts as deeply as `((a + b) + c)`.
+and pair of parentheses adds a level, so a chain such as `a + b + c` gets one level deeper with each operator.
 Parsing fails with an error rather than crashing the process when an expression is deeper than that,
 or when it is nested too deeply to fit on the stack of the current thread.
 
