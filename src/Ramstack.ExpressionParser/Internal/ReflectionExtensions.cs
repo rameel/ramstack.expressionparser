@@ -120,7 +120,7 @@ internal static class ReflectionExtensions
     ///   <item><description>If the member is an event, returns <see cref="EventInfo.EventHandlerType"/>.</description></item>
     ///   <item><description>If the member is a method, returns <see cref="MethodInfo.ReturnType"/>.</description></item>
     ///   <item><description>If the member is a constructor, returns <see cref="MemberInfo.DeclaringType"/> of the constructor.</description></item>
-    ///   <item><description>If the member is a type, returns the <see cref="Type"/> itself.</description></item>
+    ///   <item><description>If the member is a type (including nested types), returns the <see cref="Type"/> itself.</description></item>
     /// </list>
     /// </returns>
     /// <exception cref="ArgumentException">
@@ -135,10 +135,10 @@ internal static class ReflectionExtensions
             MemberTypes.Event => ((EventInfo)memberInfo).EventHandlerType,
             MemberTypes.Method => ((MethodInfo)memberInfo).ReturnType,
             MemberTypes.Constructor => memberInfo.DeclaringType,
-            MemberTypes.TypeInfo => (Type)memberInfo,
+            MemberTypes.TypeInfo or MemberTypes.NestedType => (Type)memberInfo,
             _ => null
         } ?? throw new ArgumentException(
-            $"The member type '{memberInfo.MemberType}' is not supported or its runtime type cannot be determined.",
+            $"The member type '{memberInfo.MemberType}' is not supported or the type of the member cannot be determined.",
             nameof(memberInfo));
     }
 }
