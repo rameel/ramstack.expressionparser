@@ -17,23 +17,69 @@ dotnet add package Ramstack.ExpressionParser
 ## Usage
 
 ```csharp
+using System.Linq.Expressions;
+using Ramstack.Parsing;
+
 var result = ExpressionParser.Parse("math.min(2 + 3, 2 * 3)");
 if (result.Success)
 {
-    var lambda = Expression.Lambda<Func<int>>(result.Value);
+    var lambda = Expression.Lambda<Func<int>>(result.Value!);
     var fn = lambda.Compile();
 
     Console.WriteLine(fn());
 }
 ```
 
+If the expression is invalid, `Success` is `false`, and `ErrorMessage` describes the error.
+
+Identifiers are resolved in a case-insensitive manner, so `math.min`, `Math.Min`, and `MATH.MIN`
+refer to the same method.
+
+### Evaluating expressions
+
+`Evaluate` parses, compiles, and runs an expression in a single call:
+
+```csharp
+var sum = ExpressionParser.Evaluate<int>("2 + 3 * 4");
+var area = ExpressionParser.Evaluate<Circle, double>("Math.PI * radius * radius", circle);
+```
+
+The second call evaluates the expression against `circle`, so the expression can use its members
+without qualification. If the expression is invalid, `Evaluate` throws an `ArgumentException`
+that describes the error.
+
+`Evaluate` parses and compiles the expression on every call. To evaluate the same expression repeatedly,
+use `Parse` and compile the resulting expression once.
+
+### Available types
+
+By default, expressions can use the following types:
+
+- the built-in types `bool`, `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `nint`, `nuint`,
+  `float`, `double`, `decimal`, `char`, `string`, and `object`, also by their .NET names, such as `Int32`
+  and `Boolean`;
+- `Half` and `BigInteger`;
+- `Convert`, `CultureInfo`, `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `DateTimeKind`, `DayOfWeek`,
+  `Guid`, `Math`, `MathF`, `Regex`, `RegexOptions`, `StringComparer`, `StringComparison`, `StringSplitOptions`,
+  `TimeSpan`, `TimeZoneInfo`, and `Version`.
+
+Other types are registered with `RegisterType` under their simple name, without the namespace:
+
+```csharp
+var binder = new DefaultBinder();
+binder.RegisterType(typeof(Path));
+
+var result = ExpressionParser.Parse("Path.GetFileName(\"logs/app.txt\")", binder);
+```
+
+With `importAsStatic: true`, the static members of the type can also be used without the type name,
+as with a `using static` directive, for example `GetFileName("logs/app.txt")`.
+
 ### Using `ContextAwareBinder`
 
 `ContextAwareBinder` allows binding expressions to a specific context,
 making it possible to reference its properties, fields, and methods directly within expressions.
-
-- The provided context acts as an implicit **this**, meaning you can access its members without qualification.
-- Identifiers are resolved in a case-insensitive manner, so `level`, `Level`, and `LEVEL` are treated the same.
+The provided context acts as an implicit **this**, meaning you can access its members without qualification.
 
 ```csharp
 var parameter = Expression.Parameter(typeof(LogEvent), "logEvent");
@@ -42,7 +88,7 @@ binder.RegisterType(typeof(LogLevel));
 
 var result = ExpressionParser.Parse("level == LogLevel.Error && string.IsNullOrEmpty(source)", binder);
 _predicate = Expression
-    .Lambda<Predicate<LogEvent>>(result.Value, parameter)
+    .Lambda<Predicate<LogEvent>>(result.Value!, parameter)
     .Compile();
 ```
 
