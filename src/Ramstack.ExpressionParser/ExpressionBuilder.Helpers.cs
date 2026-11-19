@@ -251,7 +251,9 @@ partial class ExpressionBuilder
 
     /// <summary>
     /// Converts the integer literal 0 opposite an operand of an enum type to that enum type
-    /// if the operator is defined for two operands of the enum type.
+    /// if the operator is defined for two operands of the enum type. As in the C# compiler, a literal
+    /// of the underlying type on the right of <c>-</c> is left unchanged, so <c>x - 0</c> returns
+    /// the enum type rather than the underlying type.
     /// </summary>
     /// <param name="expr">The binary expression.</param>
     /// <param name="lhs">The expression of the left operand.</param>

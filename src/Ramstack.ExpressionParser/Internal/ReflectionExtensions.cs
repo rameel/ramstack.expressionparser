@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Ramstack.Parsing.Internal;
 
 /// <summary>
-/// Provides reflection based extension methods.
+/// Provides extension methods for the <see cref="Type"/> and <see cref="MemberInfo"/> classes.
 /// </summary>
 internal static class ReflectionExtensions
 {

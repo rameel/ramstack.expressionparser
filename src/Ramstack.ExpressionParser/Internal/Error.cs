@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Ramstack.Parsing.Internal;
 
 /// <summary>
-/// Provides helper methods for throwing exceptions during expression parsing to simplify error handling.
+/// Provides helper methods for throwing exceptions during expression parsing.
 /// </summary>
 internal static class Error
 {

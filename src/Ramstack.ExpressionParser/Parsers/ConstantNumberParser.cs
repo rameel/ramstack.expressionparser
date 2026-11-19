@@ -1,21 +1,17 @@
 namespace Ramstack.Parsing.Parsers;
 
 /// <summary>
-/// Represents a parser for numeric literals following C# syntax rules.
+/// Represents a parser for numeric literals in C# syntax, except for digit separators
+/// and real literals that start with a decimal point, such as <c>.5</c>.
 /// </summary>
 /// <remarks>
-/// This parser only matches the number itself, since the unary sign
-/// is intercepted by the parser responsible for unary operations.
+/// This parser matches only the number itself; a leading sign is parsed as a unary operator.
 /// </remarks>
 internal sealed class ConstantNumberParser : Parser<object>
 {
     /// <summary>
-    /// Gets an instance of the numeric literal parser.
+    /// Gets the numeric literal parser.
     /// </summary>
-    /// <remarks>
-    /// This parser only matches the number itself, since the unary sign
-    /// is intercepted by the parser responsible for unary operations.
-    /// </remarks>
     public static Parser<object> NumericLiteral { get; } = new ConstantNumberParser();
 
     /// <summary>

@@ -35,8 +35,13 @@ public static class TypeUtils
     /// </summary>
     /// <param name="type">The <see cref="Type"/> to test.</param>
     /// <returns>
-    /// A value indicating whether the <paramref name="type"/> is a numeric type.
+    /// <see langword="true" /> if <paramref name="type"/> is a numeric type; otherwise, <see langword="false" />.
     /// </returns>
+    /// <remarks>
+    /// Besides the integer types checked by <see cref="IsInteger"/>, the numeric types are
+    /// <see cref="char"/>, <see cref="float"/>, <see cref="double"/>, and <see cref="decimal"/>.
+    /// Enum types are not numeric.
+    /// </remarks>
     public static bool IsNumeric(Type type)
     {
         if (!type.IsEnum)
@@ -105,13 +110,18 @@ public static class TypeUtils
 
 
     /// <summary>
-    /// Determines whether the <paramref name="source"/> can convert to the <paramref name="target"/>.
+    /// Determines whether an implicit identity or numeric conversion exists
+    /// from <paramref name="source"/> to <paramref name="target"/>.
     /// </summary>
     /// <param name="source">The type to convert from.</param>
     /// <param name="target">The type to convert to.</param>
     /// <returns>
-    /// A value indicating whether the conversion is possible.
+    /// <see langword="true" /> if the conversion exists; otherwise, <see langword="false" />.
     /// </returns>
+    /// <remarks>
+    /// Only primitive types, <see cref="decimal"/>, <see cref="string"/>, and <see cref="DateTime"/> are considered;
+    /// for other types, including enum types, the method returns <see langword="false" />.
+    /// </remarks>
     public static bool CanConvertPrimitive(Type source, Type target)
     {
         //
