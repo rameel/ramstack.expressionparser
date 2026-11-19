@@ -12,7 +12,7 @@ public static partial class ExpressionParser
     /// </summary>
     /// <param name="source">The expression string to parse.</param>
     /// <returns>
-    /// The result of the parsing operation.
+    /// The result of the parsing operation, which contains either the expression tree or a description of the error.
     /// </returns>
     public static ParseResult<Expression> Parse(ReadOnlySpan<char> source) =>
         Parse(source, new ExpressionBuilder(new DefaultBinder()));
@@ -21,9 +21,9 @@ public static partial class ExpressionParser
     /// Parses the specified expression into an <see cref="Expression"/> using the specified <see cref="Binder"/>.
     /// </summary>
     /// <param name="source">The expression string to parse.</param>
-    /// <param name="binder">The binder instance used for resolving members and methods.</param>
+    /// <param name="binder">The binder that resolves the types, members, and methods referenced in the expression.</param>
     /// <returns>
-    /// The result of the parsing operation.
+    /// The result of the parsing operation, which contains either the expression tree or a description of the error.
     /// </returns>
     public static ParseResult<Expression> Parse(ReadOnlySpan<char> source, Binder binder) =>
         Parse(source, new ExpressionBuilder(binder));
@@ -34,7 +34,7 @@ public static partial class ExpressionParser
     /// <param name="source">The expression string to parse.</param>
     /// <param name="builder">The expression builder responsible for constructing the expression tree.</param>
     /// <returns>
-    /// The result of the parsing operation.
+    /// The result of the parsing operation, which contains either the expression tree or a description of the error.
     /// </returns>
     public static ParseResult<Expression> Parse(ReadOnlySpan<char> source, ExpressionBuilder builder)
     {
@@ -84,6 +84,9 @@ public static partial class ExpressionParser
     /// <returns>
     /// The evaluated result.
     /// </returns>
+    /// <remarks>
+    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// </remarks>
     public static object? Evaluate(ReadOnlySpan<char> source) =>
         Evaluate<object>(source);
 
@@ -95,6 +98,10 @@ public static partial class ExpressionParser
     /// <returns>
     /// The evaluated result.
     /// </returns>
+    /// <remarks>
+    /// The expression can access the members of the runtime type of <paramref name="context"/>.
+    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// </remarks>
     public static object? Evaluate(ReadOnlySpan<char> source, object context)
     {
         var p = Expression.Parameter(typeof(object), "p");
@@ -128,6 +135,9 @@ public static partial class ExpressionParser
     /// <returns>
     /// The evaluated result of type <typeparamref name="TResult"/>.
     /// </returns>
+    /// <remarks>
+    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// </remarks>
     public static TResult? Evaluate<TResult>(ReadOnlySpan<char> source)
     {
         var r = Parse(source, new DefaultBinder());
@@ -159,6 +169,7 @@ public static partial class ExpressionParser
     /// <remarks>
     /// The expression can access the members of <typeparamref name="TContext"/>, not of the runtime type
     /// of <paramref name="context"/>. Members declared only in a derived or implementing type are not available.
+    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
     /// </remarks>
     public static TResult? Evaluate<TContext, TResult>(ReadOnlySpan<char> source, TContext context) where TContext : notnull
     {

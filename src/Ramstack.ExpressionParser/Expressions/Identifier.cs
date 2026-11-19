@@ -1,12 +1,13 @@
 namespace Ramstack.Parsing.Expressions;
 
 /// <summary>
-/// Represents an identifier in an expression, encapsulating its name as a string.
+/// Represents a name in an expression: an identifier, such as a member or type name,
+/// or an operator, such as <c>+</c> or <c>??</c>.
 /// </summary>
 public sealed class Identifier(string name)
 {
     /// <summary>
-    /// Gets the name of the identifier.
+    /// Gets the name of the identifier or the symbol of the operator.
     /// </summary>
     public string Name { get; } = name;
 

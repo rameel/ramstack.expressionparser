@@ -3,12 +3,13 @@ namespace Ramstack.Parsing.Expressions;
 partial class Expr
 {
     /// <summary>
-    /// Represents a literal value in an expression tree, such as a number, string, or boolean.
+    /// Represents a literal value in an expression tree, such as a number, a string, a character,
+    /// a Boolean value, or <see langword="null" />.
     /// </summary>
     public sealed class Literal(object? value) : Expr(ExprKind.Literal)
     {
         /// <summary>
-        /// Gets the constant value of the literal expression.
+        /// Gets the constant value of the literal expression, or <see langword="null" /> for the <c>null</c> literal.
         /// </summary>
         public object? Value { get; } = value;
 

@@ -18,9 +18,11 @@ partial class ExpressionParser
     private const int MaxDepth = 256;
 
     /// <summary>
-    /// Gets the sub-expression parser, which serves as the base parser for expressions.
+    /// Gets the expression parser that does not require the expression to extend to the end of the input.
     /// </summary>
     /// <remarks>
+    /// Unlike <see cref="Parser"/>, this parser leaves the input that follows the expression unconsumed,
+    /// so it can be used as part of a larger grammar.
     /// Parsing stops with a fatal error if the expression tree is deeper than 256 levels.
     /// Each operator, member access, call, indexer, and pair of parentheses adds a level,
     /// so a chain such as <c>a + b + c</c> gets one level deeper with each operator.
