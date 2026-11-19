@@ -4,8 +4,7 @@ using System.Reflection;
 namespace Ramstack.Parsing;
 
 /// <summary>
-/// Represents a binder that is aware of a specific context expression,
-/// allows resolution of members and methods based on the provided context.
+/// Represents a binder that also resolves unqualified names to the members of a context expression.
 /// </summary>
 public class ContextAwareBinder : DefaultBinder
 {
@@ -18,7 +17,7 @@ public class ContextAwareBinder : DefaultBinder
     /// <summary>
     /// Initializes a new instance of the <see cref="ContextAwareBinder"/> class.
     /// </summary>
-    /// <param name="context">The context expression used for binding operations.</param>
+    /// <param name="context">The expression whose members can be referenced without qualification.</param>
     public ContextAwareBinder(Expression context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -28,6 +27,10 @@ public class ContextAwareBinder : DefaultBinder
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// For an unqualified member name, the instance members of <see cref="Context"/> take precedence
+    /// over the static members of the types imported into scope.
+    /// </remarks>
     public override MemberInfo? BindToMember(Type? type, Identifier memberName, bool isStatic)
     {
         if (type is null && isStatic)
@@ -41,6 +44,10 @@ public class ContextAwareBinder : DefaultBinder
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// For an unqualified method name, the instance methods of <see cref="Context"/> take precedence
+    /// over the static methods of the types imported into scope.
+    /// </remarks>
     public override MethodInfo? BindToMethod(Type? type, Identifier methodName, Type[] parameterTypes, bool isStatic)
     {
         if (type is null && isStatic)

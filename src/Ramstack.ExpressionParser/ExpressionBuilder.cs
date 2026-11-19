@@ -8,18 +8,19 @@ namespace Ramstack.Parsing;
 /// <summary>
 /// Represents a visitor that builds an <see cref="Expression"/> from an <see cref="Expr"/> tree.
 /// </summary>
-/// <param name="binder">The binder instance.</param>
+/// <param name="binder">The binder that resolves the types, members, and methods referenced in the expression.</param>
 public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 {
     /// <summary>
-    /// Gets the binder instance.
+    /// Gets the binder that resolves the types, members, and methods referenced in the expression.
     /// </summary>
     public Binder Binder { get; } = binder;
 
     /// <inheritdoc />
     /// <remarks>
-    /// Throws a <see cref="ParseErrorException"/> if the thread's stack is too small
-    /// to visit the expression safely.
+    /// Errors in the expression, such as a name that cannot be resolved or an operator that cannot be applied
+    /// to its operands, are reported by throwing a <see cref="ParseErrorException"/>. The exception is also thrown
+    /// if the thread's stack is too small to visit the expression safely.
     /// </remarks>
     public override Expression Visit(Expr expr)
     {

@@ -1,7 +1,7 @@
 namespace Ramstack.Parsing;
 
 /// <summary>
-/// Represents an exception that occurs during parsing.
+/// Represents an exception that occurs when an expression cannot be parsed or translated into an expression tree.
 /// </summary>
 public sealed class ParseErrorException : Exception
 {

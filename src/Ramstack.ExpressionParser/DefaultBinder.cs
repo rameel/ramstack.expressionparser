@@ -7,8 +7,13 @@ using Ramstack.Parsing.Internal;
 namespace Ramstack.Parsing;
 
 /// <summary>
-/// Represents a default implementation of the <see cref="Binder"/> class.
+/// Represents the default binder, which resolves a predefined set of common .NET types
+/// and the types registered with <see cref="RegisterType"/>.
 /// </summary>
+/// <remarks>
+/// Names of types, members, and methods are matched without regard to case.
+/// Only public members are resolved.
+/// </remarks>
 public class DefaultBinder : Binder
 {
     private static readonly Dictionary<string, (Type type, bool isStatic)> Empty = new();
@@ -82,8 +87,13 @@ public class DefaultBinder : Binder
     /// Registers a custom type for use in binding operations, allowing it to be resolved by name.
     /// </summary>
     /// <param name="type">The <see cref="Type"/> to register for binding.</param>
-    /// <param name="importAsStatic">A <see cref="bool"/> indicating whether the type's members
-    /// should be imported directly into scope as static members (default is <see langword="false"/>).</param>
+    /// <param name="importAsStatic">A <see cref="bool"/> indicating whether the static members of the type
+    /// can be referenced without the type name, as with a <c>using static</c> directive
+    /// (default is <see langword="false"/>).</param>
+    /// <remarks>
+    /// The type is registered under its simple name, <see cref="MemberInfo.Name"/>, without the namespace.
+    /// Registering another type with the same name replaces the earlier registration.
+    /// </remarks>
     public void RegisterType(Type type, bool importAsStatic = false)
     {
         if (!PredefinedType.ContainsKey(type.Name))

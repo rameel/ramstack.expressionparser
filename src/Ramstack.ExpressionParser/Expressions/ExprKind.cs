@@ -46,15 +46,17 @@ public enum ExprKind
     Index,
 
     /// <summary>
-    /// Represents a read operation on a field or property of an object.
+    /// Represents access to a member of an object or a type.
     /// </summary>
     /// <example>
     /// In the expression <c>obj.Property</c>, this denotes accessing the "Property" member.
+    /// In the expression <c>Math.Abs(x)</c>, <c>Math.Abs</c> is a member access as well.
     /// </example>
     MemberAccess,
 
     /// <summary>
-    /// Represents a unary operation, such as negation or logical NOT, involving a single operand.
+    /// Represents a unary operation on a single operand, such as negation, logical NOT,
+    /// or a conversion with the <c>:></c> operator.
     /// </summary>
     /// <example>
     /// In the expression <c>-x</c>, this indicates the negation operation.
