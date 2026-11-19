@@ -206,6 +206,50 @@ public class ExpressionParserTest
         Assert.That(exception!.Message, Is.EqualTo("Cannot resolve symbol 'Extra'."));
     }
 
+    [TestCaseSource(nameof(InconvertibleResultSource))]
+    public void Evaluate_ResultNotConvertibleToResultType_ThrowsArgumentException(Func<object?> evaluate, string expected)
+    {
+        var exception = Assert.Throws<ArgumentException>(() => evaluate());
+
+        Assert.That(exception!.Message, Is.EqualTo(expected));
+    }
+
+    private static IEnumerable<TestCaseData> InconvertibleResultSource
+    {
+        get
+        {
+            const string VoidCall = "TimeZoneInfo.ClearCachedData()";
+            var context = new ValueContext();
+
+            yield return Case("Evaluate, void",
+                () => ExpressionParser.Evaluate(VoidCall),
+                "Cannot convert type 'System.Void' to 'System.Object'.");
+
+            yield return Case("Evaluate with context, void",
+                () => ExpressionParser.Evaluate(VoidCall, context),
+                "Cannot convert type 'System.Void' to 'System.Object'.");
+
+            yield return Case("Evaluate<TResult>, void",
+                () => ExpressionParser.Evaluate<int>(VoidCall),
+                "Cannot convert type 'System.Void' to 'System.Int32'.");
+
+            yield return Case("Evaluate<TResult>, no conversion",
+                () => ExpressionParser.Evaluate<string>("1"),
+                "Cannot convert type 'System.Int32' to 'System.String'.");
+
+            yield return Case("Evaluate<TContext, TResult>, void",
+                () => ExpressionParser.Evaluate<IValueContext, object>(VoidCall, context),
+                "Cannot convert type 'System.Void' to 'System.Object'.");
+
+            yield return Case("Evaluate<TContext, TResult>, no conversion",
+                () => ExpressionParser.Evaluate<IValueContext, string>("Value", context),
+                "Cannot convert type 'System.Int32' to 'System.String'.");
+
+            static TestCaseData Case(string name, Func<object?> evaluate, string expected) =>
+                new TestCaseData(evaluate, expected).SetArgDisplayNames(name);
+        }
+    }
+
     [TestCase("-1u", -1L)]
     [TestCase("-4294967295u", -4294967295L)]
     [TestCase("-3000000000", -3000000000L)]
