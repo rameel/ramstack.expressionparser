@@ -42,7 +42,7 @@ partial class ExpressionBuilder
     /// <param name="expression">The expression of the instance, or <see langword="null" /> for a static member.</param>
     /// <param name="member">The field or property to read.</param>
     /// <returns>
-    /// The <see cref="MemberExpression"/> that reads the member.
+    /// The <see cref="MemberExpression" /> that reads the member.
     /// </returns>
     private static MemberExpression CreateMemberAccess(Expression? expression, MemberInfo member)
     {
@@ -96,17 +96,17 @@ partial class ExpressionBuilder
     /// <summary>
     /// Converts the branches of a conditional expression to their common type.
     /// </summary>
-    /// <remarks>
-    /// As in C#, the common type is the type of one of the branches, so it is <see cref="object"/> only
-    /// when a branch is of that type, for example after an explicit conversion. The null literal takes the type
-    /// of the other branch if that type accepts <see langword="null" />.
-    /// </remarks>
     /// <param name="expr">The conditional expression.</param>
     /// <param name="ifTrue">The expression of the true branch.</param>
     /// <param name="ifFalse">The expression of the false branch.</param>
     /// <returns>
     /// The common type of the branches.
     /// </returns>
+    /// <remarks>
+    /// As in C#, the common type is the type of one of the branches, so it is <see cref="object" /> only
+    /// when a branch is of that type, for example after an explicit conversion. The null literal takes the type
+    /// of the other branch if that type accepts <see langword="null" />.
+    /// </remarks>
     private static Type ApplyConditionalConversions(Expr.Conditional expr, ref Expression ifTrue, ref Expression ifFalse)
     {
         var isTrueNull = IsNullLiteral(expr.IfTrue);
@@ -159,7 +159,7 @@ partial class ExpressionBuilder
     /// <summary>
     /// Creates a null-coalescing expression whose operands are converted to its result type.
     /// </summary>
-    /// <param name="op">The <see cref="Identifier"/> representing the operator.</param>
+    /// <param name="op">The <see cref="Identifier" /> representing the operator.</param>
     /// <param name="lhs">The expression of the left operand.</param>
     /// <param name="rhs">The expression of the right operand.</param>
     /// <returns>
@@ -582,9 +582,9 @@ partial class ExpressionBuilder
     /// </summary>
     /// <param name="operand">The expression of the operand.</param>
     /// <param name="type">The non-nullable value type to convert to.</param>
-    /// <param name="lifted"><see langword="true" /> to convert to the nullable form of <paramref name="type"/>.</param>
+    /// <param name="lifted"><see langword="true" /> to convert to the nullable form of <paramref name="type" />.</param>
     /// <returns>
-    /// The converted expression, or <paramref name="operand"/> if it is already of the resulting type.
+    /// The converted expression, or <paramref name="operand" /> if it is already of the resulting type.
     /// </returns>
     private static Expression ConvertOperand(Expression operand, Type type, bool lifted)
     {

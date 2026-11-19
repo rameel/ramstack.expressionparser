@@ -5,6 +5,8 @@ partial class Expr
     /// <summary>
     /// Represents an indexing operation in an expression tree, such as accessing an array or a parameterized property.
     /// </summary>
+    /// <param name="expression">The <see cref="Expr" /> representing the target being indexed.</param>
+    /// <param name="parameters">The <see cref="IReadOnlyList{T}" /> of <see cref="Expr" /> instances representing the index arguments.</param>
     public sealed class Indexer(Expr expression, IReadOnlyList<Expr> parameters)
         : Expr(ExprKind.Index, ComputeDepth(expression, parameters))
     {
@@ -21,8 +23,8 @@ partial class Expr
         /// <summary>
         /// Deconstructs the indexer expression into its target expression and index arguments.
         /// </summary>
-        /// <param name="expression">The <see cref="Expr"/> representing the target being indexed.</param>
-        /// <param name="parameters">The <see cref="IReadOnlyList{T}"/> of <see cref="Expr"/> instances representing the index arguments.</param>
+        /// <param name="expression">The <see cref="Expr" /> representing the target being indexed.</param>
+        /// <param name="parameters">The <see cref="IReadOnlyList{T}" /> of <see cref="Expr" /> instances representing the index arguments.</param>
         public void Deconstruct(out Expr expression, out IReadOnlyList<Expr> parameters) =>
             (expression, parameters) = (Expression, Parameters);
 

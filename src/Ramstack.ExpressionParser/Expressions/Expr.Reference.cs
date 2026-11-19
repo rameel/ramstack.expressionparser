@@ -5,6 +5,7 @@ partial class Expr
     /// <summary>
     /// Represents a reference to a type or member by its name in an expression tree.
     /// </summary>
+    /// <param name="value">The <see cref="Identifier" /> representing the referenced entity.</param>
     public sealed class Reference(Identifier value) : Expr(ExprKind.Reference)
     {
         /// <summary>
@@ -15,7 +16,7 @@ partial class Expr
         /// <summary>
         /// Deconstructs the reference expression into its identifier.
         /// </summary>
-        /// <param name="value">The <see cref="Identifier"/> representing the referenced entity.</param>
+        /// <param name="value">The <see cref="Identifier" /> representing the referenced entity.</param>
         public void Deconstruct(out Identifier value) =>
             value = Value;
 

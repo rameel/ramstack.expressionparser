@@ -8,7 +8,7 @@ namespace Ramstack.Parsing;
 public static partial class ExpressionParser
 {
     /// <summary>
-    /// Parses the specified expression into an <see cref="Expression"/>.
+    /// Parses the specified expression into an <see cref="Expression" />.
     /// </summary>
     /// <param name="source">The expression string to parse.</param>
     /// <returns>
@@ -18,7 +18,7 @@ public static partial class ExpressionParser
         Parse(source, new ExpressionBuilder(new DefaultBinder()));
 
     /// <summary>
-    /// Parses the specified expression into an <see cref="Expression"/> using the specified <see cref="Binder"/>.
+    /// Parses the specified expression into an <see cref="Expression" /> using the specified <see cref="Binder" />.
     /// </summary>
     /// <param name="source">The expression string to parse.</param>
     /// <param name="binder">The binder that resolves the types, members, and methods referenced in the expression.</param>
@@ -29,7 +29,7 @@ public static partial class ExpressionParser
         Parse(source, new ExpressionBuilder(binder));
 
     /// <summary>
-    /// Parses the specified expression into an <see cref="Expression"/> using the specified <see cref="ExpressionBuilder"/>.
+    /// Parses the specified expression into an <see cref="Expression" /> using the specified <see cref="ExpressionBuilder" />.
     /// </summary>
     /// <param name="source">The expression string to parse.</param>
     /// <param name="builder">The expression builder responsible for constructing the expression tree.</param>
@@ -85,7 +85,7 @@ public static partial class ExpressionParser
     /// The evaluated result.
     /// </returns>
     /// <remarks>
-    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static object? Evaluate(ReadOnlySpan<char> source) =>
         Evaluate<object>(source);
@@ -99,8 +99,8 @@ public static partial class ExpressionParser
     /// The evaluated result.
     /// </returns>
     /// <remarks>
-    /// The expression can access the members of the runtime type of <paramref name="context"/>.
-    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// The expression can access the members of the runtime type of <paramref name="context" />.
+    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static object? Evaluate(ReadOnlySpan<char> source, object context)
     {
@@ -133,10 +133,10 @@ public static partial class ExpressionParser
     /// <typeparam name="TResult">The expected result type.</typeparam>
     /// <param name="source">The expression string to evaluate.</param>
     /// <returns>
-    /// The evaluated result of type <typeparamref name="TResult"/>.
+    /// The evaluated result of type <typeparamref name="TResult" />.
     /// </returns>
     /// <remarks>
-    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static TResult? Evaluate<TResult>(ReadOnlySpan<char> source)
     {
@@ -164,12 +164,12 @@ public static partial class ExpressionParser
     /// <param name="source">The expression string to evaluate.</param>
     /// <param name="context">The evaluation context.</param>
     /// <returns>
-    /// The evaluated result of type <typeparamref name="TResult"/>.
+    /// The evaluated result of type <typeparamref name="TResult" />.
     /// </returns>
     /// <remarks>
-    /// The expression can access the members of <typeparamref name="TContext"/>, not of the runtime type
-    /// of <paramref name="context"/>. Members declared only in a derived or implementing type are not available.
-    /// If the expression is invalid, an <see cref="ArgumentException"/> that describes the error is thrown.
+    /// The expression can access the members of <typeparamref name="TContext" />, not of the runtime type
+    /// of <paramref name="context" />. Members declared only in a derived or implementing type are not available.
+    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static TResult? Evaluate<TContext, TResult>(ReadOnlySpan<char> source, TContext context) where TContext : notnull
     {

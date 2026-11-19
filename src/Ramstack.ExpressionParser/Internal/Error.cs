@@ -8,42 +8,42 @@ namespace Ramstack.Parsing.Internal;
 internal static class Error
 {
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating an unresolved symbol.
+    /// Throws a <see cref="ParseErrorException" /> indicating an unresolved symbol.
     /// </summary>
-    /// <param name="identifier">The <see cref="Identifier"/> that could not be resolved.</param>
+    /// <param name="identifier">The <see cref="Identifier" /> that could not be resolved.</param>
     [DoesNotReturn]
     public static void CannotResolveSymbol(Identifier identifier) =>
         throw new ParseErrorException($"Cannot resolve symbol '{identifier}'.");
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating an identifier was expected.
+    /// Throws a <see cref="ParseErrorException" /> indicating an identifier was expected.
     /// </summary>
-    /// <param name="expr">The <see cref="Expr"/> encountered where an identifier was expected.</param>
+    /// <param name="expr">The <see cref="Expr" /> encountered where an identifier was expected.</param>
     [DoesNotReturn]
     public static void IdentifierExpected(Expr expr) =>
         throw new ParseErrorException($"Identifier expected (expression: {expr}).");
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating a method name was expected.
+    /// Throws a <see cref="ParseErrorException" /> indicating a method name was expected.
     /// </summary>
-    /// <param name="expr">The <see cref="Expr"/> encountered where a method name was expected.</param>
+    /// <param name="expr">The <see cref="Expr" /> encountered where a method name was expected.</param>
     [DoesNotReturn]
     public static void MethodNameExpected(Expr expr) =>
         throw new ParseErrorException($"Method name expected (expression: {expr}).");
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating a non-invocable member was used like a method.
+    /// Throws a <see cref="ParseErrorException" /> indicating a non-invocable member was used like a method.
     /// </summary>
-    /// <param name="expr">The <see cref="Expr"/> representing the non-invocable member.</param>
+    /// <param name="expr">The <see cref="Expr" /> representing the non-invocable member.</param>
     [DoesNotReturn]
     public static void NonInvocableMember(Expr expr) =>
         throw new ParseErrorException($"Non-invocable member '{expr}' cannot be used like a method.");
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating a unary operator cannot be applied to an operand.
+    /// Throws a <see cref="ParseErrorException" /> indicating a unary operator cannot be applied to an operand.
     /// </summary>
-    /// <param name="expr">The <see cref="Expr.Unary"/> containing the operator.</param>
-    /// <param name="operandType">The <see cref="Type"/> of the operand.</param>
+    /// <param name="expr">The <see cref="Expr.Unary" /> containing the operator.</param>
+    /// <param name="operandType">The <see cref="Type" /> of the operand.</param>
     [DoesNotReturn]
     public static void NonApplicableUnaryOperator(Expr.Unary expr, Type operandType)
     {
@@ -52,11 +52,11 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating a binary operator cannot be applied to its operands.
+    /// Throws a <see cref="ParseErrorException" /> indicating a binary operator cannot be applied to its operands.
     /// </summary>
-    /// <param name="op">The <see cref="Identifier"/> representing the binary operator.</param>
-    /// <param name="left">The <see cref="Type"/> of the left operand.</param>
-    /// <param name="right">The <see cref="Type"/> of the right operand.</param>
+    /// <param name="op">The <see cref="Identifier" /> representing the binary operator.</param>
+    /// <param name="left">The <see cref="Type" /> of the left operand.</param>
+    /// <param name="right">The <see cref="Type" /> of the right operand.</param>
     [DoesNotReturn]
     public static void NonApplicableBinaryOperator(Identifier op, Type left, Type right)
     {
@@ -65,11 +65,11 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating the conditional operator cannot be applied to its branches
+    /// Throws a <see cref="ParseErrorException" /> indicating the conditional operator cannot be applied to its branches
     /// because they have no common type.
     /// </summary>
-    /// <param name="ifTrue">The <see cref="Type"/> of the true branch, or <see langword="null" /> for the null literal.</param>
-    /// <param name="ifFalse">The <see cref="Type"/> of the false branch, or <see langword="null" /> for the null literal.</param>
+    /// <param name="ifTrue">The <see cref="Type" /> of the true branch, or <see langword="null" /> for the null literal.</param>
+    /// <param name="ifFalse">The <see cref="Type" /> of the false branch, or <see langword="null" /> for the null literal.</param>
     [DoesNotReturn]
     public static void NonApplicableConditionalOperator(Type? ifTrue, Type? ifFalse)
     {
@@ -78,10 +78,10 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating an implicit type conversion is not possible.
+    /// Throws a <see cref="ParseErrorException" /> indicating an implicit type conversion is not possible.
     /// </summary>
-    /// <param name="operandType">The source <see cref="Type"/> of the operand.</param>
-    /// <param name="conversionType">The target <see cref="Type"/> for the conversion.</param>
+    /// <param name="operandType">The source <see cref="Type" /> of the operand.</param>
+    /// <param name="conversionType">The target <see cref="Type" /> for the conversion.</param>
     [DoesNotReturn]
     public static void MissingImplicitConversion(Type operandType, Type conversionType)
     {
@@ -90,9 +90,9 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating indexing cannot be applied to a type.
+    /// Throws a <see cref="ParseErrorException" /> indicating indexing cannot be applied to a type.
     /// </summary>
-    /// <param name="type">The <see cref="Type"/> that does not support indexing.</param>
+    /// <param name="type">The <see cref="Type" /> that does not support indexing.</param>
     [DoesNotReturn]
     public static void NonIndexingType(Type type)
     {
@@ -101,10 +101,10 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating a property or indexer cannot be read
+    /// Throws a <see cref="ParseErrorException" /> indicating a property or indexer cannot be read
     /// because it has no get accessor.
     /// </summary>
-    /// <param name="property">The <see cref="PropertyInfo"/> of the property or indexer.</param>
+    /// <param name="property">The <see cref="PropertyInfo" /> of the property or indexer.</param>
     [DoesNotReturn]
     public static void MissingGetAccessor(PropertyInfo property)
     {
@@ -113,10 +113,10 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating a property or indexer cannot be read
+    /// Throws a <see cref="ParseErrorException" /> indicating a property or indexer cannot be read
     /// because its get accessor is not public.
     /// </summary>
-    /// <param name="property">The <see cref="PropertyInfo"/> of the property or indexer.</param>
+    /// <param name="property">The <see cref="PropertyInfo" /> of the property or indexer.</param>
     [DoesNotReturn]
     public static void InaccessibleGetAccessor(PropertyInfo property)
     {
@@ -125,9 +125,9 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> indicating an ambiguous match among multiple candidates.
+    /// Throws a <see cref="ParseErrorException" /> indicating an ambiguous match among multiple candidates.
     /// </summary>
-    /// <param name="candidates">The collection of <see cref="MemberInfo"/> objects representing ambiguous matches.</param>
+    /// <param name="candidates">The collection of <see cref="MemberInfo" /> objects representing ambiguous matches.</param>
     [DoesNotReturn]
     public static void AmbiguousMatch(IEnumerable<MemberInfo> candidates)
     {
@@ -136,10 +136,10 @@ internal static class Error
     }
 
     /// <summary>
-    /// Throws a <see cref="ParseErrorException"/> with a custom error message.
+    /// Throws a <see cref="ParseErrorException" /> with a custom error message.
     /// </summary>
     /// <param name="message">The custom error message, or <see langword="null" /> for a default message.</param>
-    /// <exception cref="ParseErrorException">Always thrown with the specified <paramref name="message"/>.</exception>
+    /// <exception cref="ParseErrorException">Always thrown with the specified <paramref name="message" />.</exception>
     [DoesNotReturn]
     public static void Throw(string? message) =>
         throw new ParseErrorException(message);
@@ -148,7 +148,7 @@ internal static class Error
     /// Formats a property as its declaring type and name, or an indexer as its declaring type and parameter types,
     /// as in <c>T.Name</c> or <c>T.this[System.Int32]</c>.
     /// </summary>
-    /// <param name="property">The <see cref="PropertyInfo"/> of the property or indexer.</param>
+    /// <param name="property">The <see cref="PropertyInfo" /> of the property or indexer.</param>
     /// <returns>
     /// The formatted name.
     /// </returns>

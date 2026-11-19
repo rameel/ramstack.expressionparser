@@ -5,6 +5,9 @@ partial class Expr
     /// <summary>
     /// Represents a conditional (ternary) expression in an expression tree.
     /// </summary>
+    /// <param name="test">The <see cref="Expr" /> representing the condition to evaluate.</param>
+    /// <param name="ifTrue">The <see cref="Expr" /> representing the <see langword="true" /> branch.</param>
+    /// <param name="ifFalse">The <see cref="Expr" /> representing the <see langword="false" /> branch.</param>
     public sealed class Conditional(Expr test, Expr ifTrue, Expr ifFalse)
         : Expr(ExprKind.Conditional, Math.Max(test.Depth, Math.Max(ifTrue.Depth, ifFalse.Depth)) + 1)
     {
@@ -12,7 +15,7 @@ partial class Expr
         /// Gets the condition expression evaluated to determine the outcome.
         /// </summary>
         /// <value>
-        /// An <see cref="Expr"/> representing the test condition, e.g., <c>a > b</c>.
+        /// An <see cref="Expr" /> representing the test condition, e.g., <c>a > b</c>.
         /// </value>
         public Expr Test { get; } = test;
 
@@ -29,9 +32,9 @@ partial class Expr
         /// <summary>
         /// Deconstructs the conditional expression into its test condition and branch expressions.
         /// </summary>
-        /// <param name="test">The <see cref="Expr"/> representing the condition to evaluate.</param>
-        /// <param name="ifTrue">The <see cref="Expr"/> representing the <see langword="true" /> branch.</param>
-        /// <param name="ifFalse">The <see cref="Expr"/> representing the <see langword="false" /> branch.</param>
+        /// <param name="test">The <see cref="Expr" /> representing the condition to evaluate.</param>
+        /// <param name="ifTrue">The <see cref="Expr" /> representing the <see langword="true" /> branch.</param>
+        /// <param name="ifFalse">The <see cref="Expr" /> representing the <see langword="false" /> branch.</param>
         public void Deconstruct(out Expr test, out Expr ifTrue, out Expr ifFalse) =>
             (test, ifTrue, ifFalse) = (Test, IfTrue, IfFalse);
 

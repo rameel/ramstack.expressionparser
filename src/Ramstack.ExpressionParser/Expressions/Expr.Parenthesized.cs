@@ -5,7 +5,7 @@ partial class Expr
     /// <summary>
     /// Represents a parenthesized expression in an expression tree, used to enforce precedence or grouping.
     /// </summary>
-    /// <param name="expression">The <see cref="Expr"/> enclosed within parentheses.</param>
+    /// <param name="expression">The <see cref="Expr" /> enclosed within parentheses.</param>
     public sealed class Parenthesized(Expr expression)
         : Expr(ExprKind.Parenthesized, expression.Depth + 1)
     {
@@ -17,7 +17,7 @@ partial class Expr
         /// <summary>
         /// Deconstructs the parenthesized expression into its inner expression.
         /// </summary>
-        /// <param name="expression">The <see cref="Expr"/> enclosed within parentheses.</param>
+        /// <param name="expression">The <see cref="Expr" /> enclosed within parentheses.</param>
         public void Deconstruct(out Expr expression) =>
             expression = Expression;
 

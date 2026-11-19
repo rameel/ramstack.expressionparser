@@ -6,6 +6,8 @@ partial class Expr
     /// Represents a member access operation in an expression tree,
     /// such as accessing a field or property like <c>obj.Property</c>.
     /// </summary>
+    /// <param name="expression">The <see cref="Expr" /> representing the target object.</param>
+    /// <param name="member">The <see cref="Expr" /> representing the accessed member.</param>
     public sealed class MemberAccess(Expr expression, Expr member)
         : Expr(ExprKind.MemberAccess, Math.Max(expression.Depth, member.Depth) + 1)
     {
@@ -22,8 +24,8 @@ partial class Expr
         /// <summary>
         /// Deconstructs the member access expression into its target expression and member.
         /// </summary>
-        /// <param name="expression">The <see cref="Expr"/> representing the target object.</param>
-        /// <param name="member">The <see cref="Expr"/> representing the accessed member.</param>
+        /// <param name="expression">The <see cref="Expr" /> representing the target object.</param>
+        /// <param name="member">The <see cref="Expr" /> representing the accessed member.</param>
         public void Deconstruct(out Expr expression, out Expr member) =>
             (expression, member) = (Expression, Member);
 
