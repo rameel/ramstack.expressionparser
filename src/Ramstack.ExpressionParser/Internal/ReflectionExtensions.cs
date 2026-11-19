@@ -64,9 +64,6 @@ internal static class ReflectionExtensions
     ///   <item><description>For types (including nested types), checks whether the type is static using <see cref="IsStatic(Type)"/>.</description></item>
     /// </list>
     /// </returns>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the member type is unsupported or cannot be evaluated for static declaration.
-    /// </exception>
     public static bool IsStatic(this MemberInfo memberInfo)
     {
         bool result;
@@ -123,9 +120,6 @@ internal static class ReflectionExtensions
     ///   <item><description>If the member is a type, returns the <see cref="Type"/> itself.</description></item>
     /// </list>
     /// </returns>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the member type is unsupported or the runtime type cannot be determined.
-    /// </exception>
     public static Type GetMemberType(this MemberInfo memberInfo)
     {
         return memberInfo.MemberType switch
