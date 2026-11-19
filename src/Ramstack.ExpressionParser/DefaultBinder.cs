@@ -8,7 +8,7 @@ namespace Ramstack.Parsing;
 
 /// <summary>
 /// Represents the default binder, which resolves a predefined set of common .NET types
-/// and the types registered with <see cref="RegisterType"/>.
+/// and the types registered with <see cref="RegisterType" />.
 /// </summary>
 /// <remarks>
 /// Names of types, members, and methods are matched without regard to case.
@@ -86,12 +86,12 @@ public class DefaultBinder : Binder
     /// <summary>
     /// Registers a custom type for use in binding operations, allowing it to be resolved by name.
     /// </summary>
-    /// <param name="type">The <see cref="Type"/> to register for binding.</param>
-    /// <param name="importAsStatic">A <see cref="bool"/> indicating whether the static members of the type
+    /// <param name="type">The <see cref="Type" /> to register for binding.</param>
+    /// <param name="importAsStatic">A <see cref="bool" /> indicating whether the static members of the type
     /// can be referenced without the type name, as with a <c>using static</c> directive
-    /// (default is <see langword="false"/>).</param>
+    /// (default is <see langword="false" />).</param>
     /// <remarks>
-    /// The type is registered under its simple name, <see cref="MemberInfo.Name"/>, without the namespace.
+    /// The type is registered under its simple name, <see cref="MemberInfo.Name" />, without the namespace.
     /// Registering another type with the same name replaces the earlier registration.
     /// </remarks>
     public void RegisterType(Type type, bool importAsStatic = false)

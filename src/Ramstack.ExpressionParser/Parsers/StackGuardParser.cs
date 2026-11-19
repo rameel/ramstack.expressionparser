@@ -6,7 +6,7 @@ namespace Ramstack.Parsing.Parsers;
 /// </summary>
 /// <remarks>
 /// Wrap the parser through which a recursive grammar re-enters itself, so that deeply nested input
-/// produces a parse error instead of a <see cref="StackOverflowException"/>.
+/// produces a parse error instead of a <see cref="StackOverflowException" />.
 /// </remarks>
 /// <typeparam name="T">The type of the value produced by the underlying parser.</typeparam>
 /// <param name="parser">The underlying parser.</param>

@@ -22,8 +22,8 @@ partial class Expr
         /// <summary>
         /// Deconstructs the member access expression into its target expression and member.
         /// </summary>
-        /// <param name="expression">The <see cref="Expr"/> representing the target object.</param>
-        /// <param name="member">The <see cref="Expr"/> representing the accessed member.</param>
+        /// <param name="expression">The <see cref="Expr" /> representing the target object.</param>
+        /// <param name="member">The <see cref="Expr" /> representing the accessed member.</param>
         public void Deconstruct(out Expr expression, out Expr member) =>
             (expression, member) = (Expression, Member);
 

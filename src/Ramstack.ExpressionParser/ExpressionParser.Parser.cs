@@ -21,7 +21,7 @@ partial class ExpressionParser
     /// Gets the expression parser that does not require the expression to extend to the end of the input.
     /// </summary>
     /// <remarks>
-    /// Unlike <see cref="Parser"/>, this parser leaves the input that follows the expression unconsumed,
+    /// Unlike <see cref="Parser" />, this parser leaves the input that follows the expression unconsumed,
     /// so it can be used as part of a larger grammar.
     /// Parsing stops with a fatal error if the expression tree is deeper than 256 levels.
     /// Each operator, member access, call, indexer, and pair of parentheses adds a level,
@@ -296,7 +296,7 @@ partial class ExpressionParser
     }
 
     /// <summary>
-    /// Stops parsing with a fatal error if the specified expression tree is deeper than <see cref="MaxDepth"/>.
+    /// Stops parsing with a fatal error if the specified expression tree is deeper than <see cref="MaxDepth" />.
     /// </summary>
     /// <param name="expr">The expression tree to check.</param>
     /// <returns>

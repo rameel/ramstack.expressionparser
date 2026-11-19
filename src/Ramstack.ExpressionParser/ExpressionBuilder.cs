@@ -6,7 +6,7 @@ using Ramstack.Parsing.Internal;
 namespace Ramstack.Parsing;
 
 /// <summary>
-/// Represents a visitor that builds an <see cref="Expression"/> from an <see cref="Expr"/> tree.
+/// Represents a visitor that builds an <see cref="Expression" /> from an <see cref="Expr" /> tree.
 /// </summary>
 /// <param name="binder">The binder that resolves the types, members, and methods referenced in the expression.</param>
 public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
@@ -19,7 +19,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     /// <inheritdoc />
     /// <remarks>
     /// Errors in the expression, such as a name that cannot be resolved or an operator that cannot be applied
-    /// to its operands, are reported by throwing a <see cref="ParseErrorException"/>. The exception is also thrown
+    /// to its operands, are reported by throwing a <see cref="ParseErrorException" />. The exception is also thrown
     /// if the thread's stack is too small to visit the expression safely.
     /// </remarks>
     public override Expression Visit(Expr expr)

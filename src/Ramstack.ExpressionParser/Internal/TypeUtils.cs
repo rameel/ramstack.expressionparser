@@ -31,15 +31,15 @@ public static class TypeUtils
     ];
 
     /// <summary>
-    /// Determines whether the <paramref name="type"/> is a numeric type.
+    /// Determines whether the <paramref name="type" /> is a numeric type.
     /// </summary>
-    /// <param name="type">The <see cref="Type"/> to test.</param>
+    /// <param name="type">The <see cref="Type" /> to test.</param>
     /// <returns>
-    /// <see langword="true" /> if <paramref name="type"/> is a numeric type; otherwise, <see langword="false" />.
+    /// <see langword="true" /> if <paramref name="type" /> is a numeric type; otherwise, <see langword="false" />.
     /// </returns>
     /// <remarks>
-    /// Besides the integer types checked by <see cref="IsInteger"/>, the numeric types are
-    /// <see cref="char"/>, <see cref="float"/>, <see cref="double"/>, and <see cref="decimal"/>.
+    /// Besides the integer types checked by <see cref="IsInteger" />, the numeric types are
+    /// <see cref="char" />, <see cref="float" />, <see cref="double" />, and <see cref="decimal" />.
     /// Enum types are not numeric.
     /// </remarks>
     public static bool IsNumeric(Type type)
@@ -70,21 +70,21 @@ public static class TypeUtils
     /// <summary>
     /// Determines whether the specified type represents an integer type.
     /// </summary>
-    /// <param name="type">The <see cref="Type"/> to evaluate.</param>
+    /// <param name="type">The <see cref="Type" /> to evaluate.</param>
     /// <returns>
     /// <see langword="true" /> if the type is an integer type (signed or unsigned); otherwise, <see langword="false" />.
     /// </returns>
     /// <remarks>
     /// This method checks for the following integer types:
     /// <list type="bullet">
-    ///   <item><description><see cref="TypeCode.SByte"/></description></item>
-    ///   <item><description><see cref="TypeCode.Byte"/></description></item>
-    ///   <item><description><see cref="TypeCode.Int16"/></description></item>
-    ///   <item><description><see cref="TypeCode.UInt16"/></description></item>
-    ///   <item><description><see cref="TypeCode.Int32"/></description></item>
-    ///   <item><description><see cref="TypeCode.UInt32"/></description></item>
-    ///   <item><description><see cref="TypeCode.Int64"/></description></item>
-    ///   <item><description><see cref="TypeCode.UInt64"/></description></item>
+    ///   <item><description><see cref="TypeCode.SByte" /></description></item>
+    ///   <item><description><see cref="TypeCode.Byte" /></description></item>
+    ///   <item><description><see cref="TypeCode.Int16" /></description></item>
+    ///   <item><description><see cref="TypeCode.UInt16" /></description></item>
+    ///   <item><description><see cref="TypeCode.Int32" /></description></item>
+    ///   <item><description><see cref="TypeCode.UInt32" /></description></item>
+    ///   <item><description><see cref="TypeCode.Int64" /></description></item>
+    ///   <item><description><see cref="TypeCode.UInt64" /></description></item>
     /// </list>
     /// </remarks>
     public static bool IsInteger(Type type)
@@ -111,7 +111,7 @@ public static class TypeUtils
 
     /// <summary>
     /// Determines whether an implicit identity or numeric conversion exists
-    /// from <paramref name="source"/> to <paramref name="target"/>.
+    /// from <paramref name="source" /> to <paramref name="target" />.
     /// </summary>
     /// <param name="source">The type to convert from.</param>
     /// <param name="target">The type to convert to.</param>
@@ -119,7 +119,7 @@ public static class TypeUtils
     /// <see langword="true" /> if the conversion exists; otherwise, <see langword="false" />.
     /// </returns>
     /// <remarks>
-    /// Only primitive types, <see cref="decimal"/>, <see cref="string"/>, and <see cref="DateTime"/> are considered;
+    /// Only primitive types, <see cref="decimal" />, <see cref="string" />, and <see cref="DateTime" /> are considered;
     /// for other types, including enum types, the method returns <see langword="false" />.
     /// </remarks>
     public static bool CanConvertPrimitive(Type source, Type target)
@@ -147,8 +147,8 @@ public static class TypeUtils
     /// <param name="source">The type to convert from.</param>
     /// <param name="target">The type to convert to.</param>
     /// <returns>
-    /// The conversion operator, or <see langword="null" /> if <paramref name="source"/> does not declare
-    /// an implicit conversion to <paramref name="target"/>.
+    /// The conversion operator, or <see langword="null" /> if <paramref name="source" /> does not declare
+    /// an implicit conversion to <paramref name="target" />.
     /// </returns>
     public static MethodInfo? FindConversionOperator(Type source, Type target)
     {

@@ -15,7 +15,7 @@ partial class Expr
         /// <summary>
         /// Deconstructs the reference expression into its identifier.
         /// </summary>
-        /// <param name="value">The <see cref="Identifier"/> representing the referenced entity.</param>
+        /// <param name="value">The <see cref="Identifier" /> representing the referenced entity.</param>
         public void Deconstruct(out Identifier value) =>
             value = Value;
 

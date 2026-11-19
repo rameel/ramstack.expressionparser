@@ -15,7 +15,7 @@ public class ContextAwareBinder : DefaultBinder
     public override Expression Context => _context;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ContextAwareBinder"/> class.
+    /// Initializes a new instance of the <see cref="ContextAwareBinder" /> class.
     /// </summary>
     /// <param name="context">The expression whose members can be referenced without qualification.</param>
     public ContextAwareBinder(Expression context)
@@ -28,7 +28,7 @@ public class ContextAwareBinder : DefaultBinder
 
     /// <inheritdoc />
     /// <remarks>
-    /// For an unqualified member name, the instance members of <see cref="Context"/> take precedence
+    /// For an unqualified member name, the instance members of <see cref="Context" /> take precedence
     /// over the static members of the types imported into scope.
     /// </remarks>
     public override MemberInfo? BindToMember(Type? type, Identifier memberName, bool isStatic)
@@ -45,7 +45,7 @@ public class ContextAwareBinder : DefaultBinder
 
     /// <inheritdoc />
     /// <remarks>
-    /// For an unqualified method name, the instance methods of <see cref="Context"/> take precedence
+    /// For an unqualified method name, the instance methods of <see cref="Context" /> take precedence
     /// over the static methods of the types imported into scope.
     /// </remarks>
     public override MethodInfo? BindToMethod(Type? type, Identifier methodName, Type[] parameterTypes, bool isStatic)
