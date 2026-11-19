@@ -388,6 +388,21 @@ public class ExpressionParserTest
         Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
     }
 
+    [TestCase("Later(Words)", "string[]")]
+    [TestCase("string.Concat(Words)", "ab")]
+    public void Evaluate_AmbiguousPairBeforeBestOverload_SelectsBestOverload(string expression, string expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new OverloadContext()), Is.EqualTo(expected));
+
+    [Test]
+    public void Parse_NoOverloadBetterThanAllOthers_ReturnsAmbiguityError()
+    {
+        var parameter = Expression.Parameter(typeof(OverloadContext), "c");
+        var result = ExpressionParser.Parse("""NoBest("a", "b")""", new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
+    }
+
     [Test]
     public void Parse_ByteArgumentForCharParameter_ReturnsError()
     {
@@ -827,6 +842,23 @@ public class ExpressionParserTest
 
         public static string ExpandedBothDefaults(int a, int b = 0, params int[] rest) => "(int, int = 0, params int[])";
         public static string ExpandedBothDefaults(int a, int b = 0, int c = 0, params int[] rest) => "(int, int = 0, int = 0, params int[])";
+
+        public string[] Words { get; } = ["a", "b"];
+
+        //
+        // The first two overloads are ambiguous for a string array, and the last one is better than both.
+        //
+        public static string Later(object[] _) => "object[]";
+        public static string Later(IEnumerable<string> _) => "IEnumerable<string>";
+        public static string Later(string[] _) => "string[]";
+
+        //
+        // The last overload is better than the first one, but neither it nor any other overload is better
+        // than all the others, so a call with two strings is ambiguous.
+        //
+        public static string NoBest(object a, string b) => "(object, string)";
+        public static string NoBest(string a, object b) => "(string, object)";
+        public static string NoBest(IComparable a, string b) => "(IComparable, string)";
     }
 
     public class IndexerContext
