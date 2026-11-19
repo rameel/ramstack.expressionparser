@@ -85,7 +85,8 @@ public static partial class ExpressionParser
     /// The evaluated result.
     /// </returns>
     /// <remarks>
-    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
+    /// If the expression is invalid or the type of its result cannot be converted to <see cref="object" />,
+    /// an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static object? Evaluate(ReadOnlySpan<char> source) =>
         Evaluate<object>(source);
@@ -100,7 +101,8 @@ public static partial class ExpressionParser
     /// </returns>
     /// <remarks>
     /// The expression can access the members of the runtime type of <paramref name="context" />.
-    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
+    /// If the expression is invalid or the type of its result cannot be converted to <see cref="object" />,
+    /// an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static object? Evaluate(ReadOnlySpan<char> source, object context)
     {
@@ -119,7 +121,7 @@ public static partial class ExpressionParser
             expressions:
             [
                 Expression.Assign(c, Expression.Convert(p, context.GetType())),
-                r.Value.Type.IsClass ? r.Value : Expression.Convert(r.Value, typeof(object))
+                ConvertResult(r.Value, typeof(object))
             ]);
 
         return Expression
@@ -136,7 +138,8 @@ public static partial class ExpressionParser
     /// The evaluated result of type <typeparamref name="TResult" />.
     /// </returns>
     /// <remarks>
-    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
+    /// If the expression is invalid or the type of its result cannot be converted to <typeparamref name="TResult" />,
+    /// an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static TResult? Evaluate<TResult>(ReadOnlySpan<char> source)
     {
@@ -147,9 +150,7 @@ public static partial class ExpressionParser
         if (r.Value is null)
             return default;
 
-        var e = r.Value;
-        if (e.Type != typeof(TResult) && (!e.Type.IsClass || !typeof(TResult).IsAssignableFrom(e.Type)))
-            e = Expression.Convert(e, typeof(TResult));
+        var e = ConvertResult(r.Value, typeof(TResult));
 
         return Expression
             .Lambda<Func<TResult?>>(e)
@@ -169,7 +170,8 @@ public static partial class ExpressionParser
     /// <remarks>
     /// The expression can access the members of <typeparamref name="TContext" />, not of the runtime type
     /// of <paramref name="context" />. Members declared only in a derived or implementing type are not available.
-    /// If the expression is invalid, an <see cref="ArgumentException" /> that describes the error is thrown.
+    /// If the expression is invalid or the type of its result cannot be converted to <typeparamref name="TResult" />,
+    /// an <see cref="ArgumentException" /> that describes the error is thrown.
     /// </remarks>
     public static TResult? Evaluate<TContext, TResult>(ReadOnlySpan<char> source, TContext context) where TContext : notnull
     {
@@ -182,12 +184,38 @@ public static partial class ExpressionParser
         if (r.Value is null)
             return default;
 
-        var e = r.Value;
-        if (e.Type != typeof(TResult) && (!e.Type.IsClass || !typeof(TResult).IsAssignableFrom(e.Type)))
-            e = Expression.Convert(e, typeof(TResult));
+        var e = ConvertResult(r.Value, typeof(TResult));
 
         return Expression
             .Lambda<Func<TContext, TResult?>>(e, c)
             .Compile()(context);
+    }
+
+    /// <summary>
+    /// Converts the result of an expression to the specified type.
+    /// </summary>
+    /// <param name="expression">The expression whose result to convert.</param>
+    /// <param name="type">The type to convert the result to.</param>
+    /// <returns>
+    /// The <paramref name="expression" /> itself if its result needs no conversion;
+    /// otherwise, an expression that converts the result to <paramref name="type" />.
+    /// </returns>
+    /// <remarks>
+    /// The result is converted explicitly. If there is no such conversion, as for an expression
+    /// of type <see langword="void" />, an <see cref="ArgumentException" /> is thrown.
+    /// </remarks>
+    private static Expression ConvertResult(Expression expression, Type type)
+    {
+        if (expression.Type == type || expression.Type.IsClass && type.IsAssignableFrom(expression.Type))
+            return expression;
+
+        try
+        {
+            return Expression.Convert(expression, type);
+        }
+        catch (InvalidOperationException)
+        {
+            throw new ArgumentException($"Cannot convert type '{expression.Type}' to '{type}'.");
+        }
     }
 }
