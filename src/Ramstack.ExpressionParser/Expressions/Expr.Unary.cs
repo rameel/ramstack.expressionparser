@@ -20,7 +20,7 @@ partial class Expr
         public Identifier Operator { get; } = @operator;
 
         /// <summary>
-        /// Gets the type of the unary operation.
+        /// Gets the kind of the unary operation.
         /// </summary>
         /// <value>
         /// A <see cref="UnaryType"/> value indicating the kind of operation, such as negation or conversion.
@@ -36,22 +36,22 @@ partial class Expr
         public Expr Operand { get; } = operand;
 
         /// <summary>
-        /// Deconstructs the unary expression into its type and operand.
+        /// Deconstructs the unary expression into its kind and operand.
         /// </summary>
         /// <param name="unaryType">The <see cref="UnaryType"/> of the unary operation.</param>
         /// <param name="operand">The <see cref="Expr"/> on which the operation is applied.</param>
         /// <example>
         /// <code>
         /// var unary = new Expr.Unary(new Identifier("-"), UnaryType.Negate, new Expr.Reference(new Identifier("x")));
-        /// var (type, operand) = unary;
-        /// // type is UnaryType.Negate, operand is the reference to x
+        /// var (kind, operand) = unary;
+        /// // kind is UnaryType.Negate, operand is the reference to x
         /// </code>
         /// </example>
         public void Deconstruct(out UnaryType unaryType, out Expr operand) =>
             (unaryType, operand) = (UnaryType, Operand);
 
         /// <summary>
-        /// Deconstructs the unary expression into its operator, type, and operand.
+        /// Deconstructs the unary expression into its operator, kind, and operand.
         /// </summary>
         /// <param name="operator">The <see cref="Identifier"/> representing the unary operator.</param>
         /// <param name="unaryType">The <see cref="UnaryType"/> of the unary operation.</param>
@@ -59,8 +59,8 @@ partial class Expr
         /// <example>
         /// <code>
         /// var unary = new Expr.Unary(new Identifier("-"), UnaryType.Negate, new Expr.Reference(new Identifier("x")));
-        /// var (op, type, operand) = unary;
-        /// // op.Name is "-", type is UnaryType.Negate, operand is the reference to x
+        /// var (op, kind, operand) = unary;
+        /// // op.Name is "-", kind is UnaryType.Negate, operand is the reference to x
         /// </code>
         /// </example>
         public void Deconstruct(out Identifier @operator, out UnaryType unaryType, out Expr operand) =>

@@ -6,10 +6,10 @@ namespace Ramstack.Parsing.Expressions;
 public enum UnaryType
 {
     /// <summary>
-    /// Represents a type cast or conversion operation, such as converting a value to a specific type.
+    /// Represents an explicit conversion of the operand to a type.
     /// </summary>
     /// <example>
-    /// In the expression <c>x :> int</c>, this indicates a conversion of <c>x</c> to an integer.
+    /// In the expression <c>x :> int</c>, this indicates a conversion of <c>x</c> to <c>int</c>.
     /// </example>
     Convert,
 

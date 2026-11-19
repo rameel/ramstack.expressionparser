@@ -55,7 +55,7 @@ public abstract partial class Expr(ExprKind kind)
     /// <summary>
     /// Deconstructs the expression into its kind.
     /// </summary>
-    /// <param name="kind">The <see cref="ExprKind"/> of this expression node, output as an enumeration value.</param>
+    /// <param name="kind">The <see cref="ExprKind"/> of this expression node.</param>
     public void Deconstruct(out ExprKind kind) =>
         kind = Kind;
 

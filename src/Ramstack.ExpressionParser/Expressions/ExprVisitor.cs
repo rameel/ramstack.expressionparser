@@ -1,7 +1,7 @@
 namespace Ramstack.Parsing.Expressions;
 
 /// <summary>
-/// Represents a visitor or rewriter for expression trees that produces a result of type <typeparamref name="T"/>.
+/// Represents a visitor for <see cref="Expr"/> trees that produces a result of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of the result produced by visiting the expression tree nodes.</typeparam>
 public abstract class ExprVisitor<T>
@@ -17,15 +17,12 @@ public abstract class ExprVisitor<T>
         expr.Accept(this);
 
     /// <summary>
-    /// Visits a list of expressions and returns a collection of results.
+    /// Visits each expression in the list in order and returns the results.
     /// </summary>
-    /// <param name="nodes">The <see cref="IReadOnlyList{T}"/> of <see cref="Expr"/> instances to visit.</param>
+    /// <param name="nodes">The expressions to visit.</param>
     /// <returns>
-    /// An <see cref="IReadOnlyList{T}"/> containing the results of type <typeparamref name="T"/> for each visited expression.
+    /// The results of visiting the expressions, in the same order as <paramref name="nodes"/>.
     /// </returns>
-    /// <remarks>
-    /// Returns an empty list if <paramref name="nodes"/> is empty; otherwise, visits each expression in sequence.
-    /// </remarks>
     public virtual IReadOnlyList<T> Visit(IReadOnlyList<Expr> nodes)
     {
         if (nodes.Count == 0)

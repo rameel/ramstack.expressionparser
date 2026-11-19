@@ -11,9 +11,9 @@ public sealed class Identifier(string name)
     public string Name { get; } = name;
 
     /// <summary>
-    /// Deconstructs the identifier into its constituent name.
+    /// Deconstructs the identifier into its name.
     /// </summary>
-    /// <param name="name">The name of the identifier, output as a string.</param>
+    /// <param name="name">The name of the identifier.</param>
     public void Deconstruct(out string name) =>
         name = Name;
 

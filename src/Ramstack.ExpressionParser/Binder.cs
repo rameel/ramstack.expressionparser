@@ -33,8 +33,7 @@ public abstract class Binder
     /// <param name="isStatic">A <see cref="bool"/> indicating whether to match only static methods
     /// (<see langword="true"/>) or instance methods (<see langword="false"/>).</param>
     /// <returns>
-    /// A <see cref="MethodInfo"/> representing the matching method if found;  otherwise,
-    /// <see langword="null"/> if no suitable method is identified.
+    /// A <see cref="MethodInfo"/> representing the matching method if found; otherwise, <see langword="null"/>.
     /// </returns>
     public abstract MethodInfo? BindToMethod(Type? type, Identifier methodName, Type[] parameterTypes, bool isStatic);
 
@@ -46,8 +45,7 @@ public abstract class Binder
     /// <param name="isStatic">A <see cref="bool"/> indicating whether to match only static members
     /// (<see langword="true"/>) or instance members (<see langword="false"/>).</param>
     /// <returns>
-    /// A <see cref="MemberInfo"/> representing the matching member if found; otherwise,
-    /// <see langword="null"/> if no suitable member is identified.
+    /// A <see cref="MemberInfo"/> representing the matching member if found; otherwise, <see langword="null"/>.
     /// </returns>
     public abstract MemberInfo? BindToMember(Type? type, Identifier memberName, bool isStatic);
 }
