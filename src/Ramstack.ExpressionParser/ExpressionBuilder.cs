@@ -12,6 +12,17 @@ namespace Ramstack.Parsing;
 public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 {
     /// <summary>
+    /// The overloads of the <c>string.Concat</c> method that the <c>+</c> operator with a string operand is bound to.
+    /// </summary>
+    private static readonly MethodBase[] ConcatMethods = typeof(string)
+        .GetMethods(BindingFlags.Public | BindingFlags.Static)
+        .Where(m =>
+            m.Name == nameof(string.Concat)
+            && (m.CallingConvention & CallingConventions.VarArgs) == 0)
+        .Cast<MethodBase>()
+        .ToArray();
+
+    /// <summary>
     /// Gets the binder that resolves the types, members, and methods referenced in the expression.
     /// </summary>
     public Binder Binder { get; } = binder;
@@ -96,15 +107,6 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                 Flatten(lhs);
                 Flatten(rhs);
 
-                var methods = typeof(string)
-                    .GetMethods(
-                        BindingFlags.Public | BindingFlags.Static)
-                    .Where(m =>
-                        m.Name == nameof(string.Concat)
-                        && (m.CallingConvention & CallingConventions.VarArgs) == 0)
-                    .Cast<MethodBase>()
-                    .ToArray();
-
                 if (argumentTypes.Any(t => t != typeof(string)))
                 {
                     for (var i = 0; i < arguments.Count; i++)
@@ -115,7 +117,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                     }
                 }
 
-                var cmi = (MethodInfo?)MethodResolver.ResolveMethod(methods, argumentTypes.ToArray())!;
+                var cmi = (MethodInfo?)MethodResolver.ResolveMethod(ConcatMethods, argumentTypes.ToArray())!;
                 Debug.Assert(cmi is not null);
 
                 var args = CreateInjectingArguments(cmi, arguments);
