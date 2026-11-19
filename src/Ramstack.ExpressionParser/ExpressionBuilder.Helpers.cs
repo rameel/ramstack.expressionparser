@@ -105,7 +105,8 @@ partial class ExpressionBuilder
     /// <remarks>
     /// As in C#, the common type is the type of one of the branches, so it is <see cref="object" /> only
     /// when a branch is of that type, for example after an explicit conversion. The null literal takes the type
-    /// of the other branch if that type accepts <see langword="null" />.
+    /// of the other branch if that type accepts <see langword="null" />. A branch of type <see langword="void" />
+    /// is rejected.
     /// </remarks>
     private static Type ApplyConditionalConversions(Expr.Conditional expr, ref Expression ifTrue, ref Expression ifFalse)
     {
@@ -130,6 +131,12 @@ partial class ExpressionBuilder
                 isTrueNull ? null : ifTrue.Type,
                 isFalseNull ? null : ifFalse.Type);
         }
+
+        //
+        // A branch of type void has no value, so the conditional expression would have none either.
+        //
+        if (ifTrue.Type == typeof(void) || ifFalse.Type == typeof(void))
+            Error.NonApplicableConditionalOperator(ifTrue.Type, ifFalse.Type);
 
         if (ifTrue.Type == ifFalse.Type)
             return ifTrue.Type;
