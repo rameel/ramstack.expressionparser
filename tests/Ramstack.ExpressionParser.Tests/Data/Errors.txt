@@ -269,5 +269,8 @@ Operator '?:' cannot be applied to operands of type 'System.Int32' and '<null>'.
 true ? null : null
 Operator '?:' cannot be applied to operands of type '<null>' and '<null>'.
 
+true ? TimeZoneInfo.ClearCachedData() : TimeZoneInfo.ClearCachedData()
+Operator '?:' cannot be applied to operands of type 'System.Void' and 'System.Void'.
+
 (true ? "abc" : null :> object).Length
 Cannot resolve symbol 'Length'.
