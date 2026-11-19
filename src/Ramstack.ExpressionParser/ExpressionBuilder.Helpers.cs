@@ -96,17 +96,17 @@ partial class ExpressionBuilder
     /// <summary>
     /// Converts the branches of a conditional expression to their common type.
     /// </summary>
-    /// <remarks>
-    /// As in C#, the common type is the type of one of the branches, so it is <see cref="object" /> only
-    /// when a branch is of that type, for example after an explicit conversion. The null literal takes the type
-    /// of the other branch if that type accepts <see langword="null" />.
-    /// </remarks>
     /// <param name="expr">The conditional expression.</param>
     /// <param name="ifTrue">The expression of the true branch.</param>
     /// <param name="ifFalse">The expression of the false branch.</param>
     /// <returns>
     /// The common type of the branches.
     /// </returns>
+    /// <remarks>
+    /// As in C#, the common type is the type of one of the branches, so it is <see cref="object" /> only
+    /// when a branch is of that type, for example after an explicit conversion. The null literal takes the type
+    /// of the other branch if that type accepts <see langword="null" />.
+    /// </remarks>
     private static Type ApplyConditionalConversions(Expr.Conditional expr, ref Expression ifTrue, ref Expression ifFalse)
     {
         var isTrueNull = IsNullLiteral(expr.IfTrue);
