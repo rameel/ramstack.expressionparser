@@ -49,6 +49,25 @@ internal static class ReflectionExtensions
         type.IsClass && type.IsAbstract && type.IsSealed;
 
     /// <summary>
+    /// Returns the types whose members are looked up when a member is accessed through the specified type.
+    /// </summary>
+    /// <param name="type">The type through which the member is accessed.</param>
+    /// <returns>
+    /// The specified type and, if it is an interface, its base interfaces and <see cref="object" />.
+    /// </returns>
+    /// <remarks>
+    /// For an interface, <see cref="Type.GetMembers()" /> returns only the members the interface declares,
+    /// while in C# member lookup in an interface also finds the members of its base interfaces and <see cref="object" />.
+    /// </remarks>
+    public static IEnumerable<Type> GetMemberLookupTypes(this Type type)
+    {
+        if (type.IsInterface)
+            return [type, ..type.GetInterfaces(), typeof(object)];
+
+        return [type];
+    }
+
+    /// <summary>
     /// Determines whether the specified member is declared as static.
     /// </summary>
     /// <param name="memberInfo">The <see cref="MemberInfo" /> instance representing the member to evaluate.</param>

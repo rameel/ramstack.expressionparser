@@ -226,7 +226,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             var indexers = new List<PropertyInfo>();
             var methods = new List<MethodBase>();
 
-            foreach (var pi in self.Type.GetProperties())
+            foreach (var pi in self.Type.GetMemberLookupTypes().SelectMany(t => t.GetProperties()))
             {
                 var mi = pi.GetMethod;
                 if (mi?.GetParameters().Length > 0)

@@ -118,7 +118,7 @@ public class DefaultBinder : Binder
     public override MethodInfo? BindToMethod(Type? type, Identifier methodName, Type[] parameterTypes, bool isStatic)
     {
         var q = type is not null
-            ? GetMethods(type, methodName.Name, isStatic)
+            ? type.GetMemberLookupTypes().SelectMany(t => GetMethods(t, methodName.Name, isStatic))
             : s_predefinedTypes
                 .Concat(_types)
                 .Where(t => t.Value.isStatic)
@@ -142,7 +142,7 @@ public class DefaultBinder : Binder
             ? BindingFlags.Public | BindingFlags.Static
             : BindingFlags.Public | BindingFlags.Instance;
 
-        var q = type?.GetMembers(bindingFlags)
+        var q = type?.GetMemberLookupTypes().SelectMany(t => t.GetMembers(bindingFlags))
             ?? s_predefinedTypes
                 .Concat(_types)
                 .Where(t => t.Value.isStatic)
@@ -153,6 +153,17 @@ public class DefaultBinder : Binder
                 m.Name.Equals(memberName.Name, StringComparison.OrdinalIgnoreCase)
                 && m.MemberType is MemberTypes.Field or MemberTypes.Property)
             .ToArray();
+
+        //
+        // The lookup in an interface includes its base interfaces, so, as in C#, a member
+        // of a derived interface hides the members with the same name of its base interfaces.
+        //
+        if (type?.IsInterface == true && candidates.Length > 1)
+            candidates = candidates
+                .Where(m => !candidates.Any(c =>
+                    c.DeclaringType != m.DeclaringType
+                    && m.DeclaringType!.IsAssignableFrom(c.DeclaringType)))
+                .ToArray();
 
         switch (candidates.Length)
         {
