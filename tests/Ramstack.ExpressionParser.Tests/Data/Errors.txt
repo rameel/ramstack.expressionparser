@@ -274,3 +274,43 @@ Operator '?:' cannot be applied to operands of type 'System.Void' and 'System.Vo
 
 (true ? "abc" : null :> object).Length
 Cannot resolve symbol 'Length'.
+
+#######################################
+###### Numeric literals out of range ##
+#######################################
+
+100000000000000000000
+(1:1) Integral constant is too large.
+
+18446744073709551616
+(1:1) Integral constant is too large.
+
+100000000000000000000.ToString()
+(1:1) Integral constant is too large.
+
+0x10000000000000000
+(1:1) Integral constant is too large.
+
+0b10000000000000000000000000000000000000000000000000000000000000000
+(1:1) Integral constant is too large.
+
+1 + 0x10000000000000000
+(1:5) Integral constant is too large.
+
+1e400
+(1:1) Floating-point constant is outside the range of type 'System.Double'.
+
+1e400d
+(1:1) Floating-point constant is outside the range of type 'System.Double'.
+
+1e39f
+(1:1) Floating-point constant is outside the range of type 'System.Single'.
+
+1e100m
+(1:1) Floating-point constant is outside the range of type 'System.Decimal'.
+
+79228162514264337593543950336m
+(1:1) Floating-point constant is outside the range of type 'System.Decimal'.
+
+1 + 1e400
+(1:5) Floating-point constant is outside the range of type 'System.Double'.
