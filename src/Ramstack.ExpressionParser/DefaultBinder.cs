@@ -16,12 +16,12 @@ namespace Ramstack.Parsing;
 /// </remarks>
 public class DefaultBinder : Binder
 {
-    private static readonly Dictionary<string, (Type type, bool isStatic)> Empty = new();
+    private static readonly Dictionary<string, (Type type, bool isStatic)> s_empty = new();
 
     /// <summary>
     /// A predefined dictionary of safe common .NET types.
     /// </summary>
-    private static readonly Dictionary<string, (Type type, bool isStatic)> PredefinedType = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, (Type type, bool isStatic)> s_predefinedTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         { "bool", (typeof(bool), false) },
         { "boolean", (typeof(bool), false) },
@@ -81,7 +81,7 @@ public class DefaultBinder : Binder
     /// <summary>
     /// A dictionary of user-registered types.
     /// </summary>
-    private Dictionary<string, (Type type, bool isStatic)> _types = Empty;
+    private Dictionary<string, (Type type, bool isStatic)> _types = s_empty;
 
     /// <summary>
     /// Registers a custom type for use in binding operations, allowing it to be resolved by name.
@@ -96,9 +96,9 @@ public class DefaultBinder : Binder
     /// </remarks>
     public void RegisterType(Type type, bool importAsStatic = false)
     {
-        if (!PredefinedType.ContainsKey(type.Name))
+        if (!s_predefinedTypes.ContainsKey(type.Name))
         {
-            if (ReferenceEquals(_types, Empty))
+            if (ReferenceEquals(_types, s_empty))
                 _types = new Dictionary<string, (Type, bool)>(StringComparer.OrdinalIgnoreCase);
 
             _types[type.Name] = (type, importAsStatic);
@@ -108,7 +108,7 @@ public class DefaultBinder : Binder
     /// <inheritdoc />
     public override Type? BindToType(Identifier name)
     {
-        if (!PredefinedType.TryGetValue(name.Name, out var value))
+        if (!s_predefinedTypes.TryGetValue(name.Name, out var value))
             _types.TryGetValue(name.Name, out value);
 
         return value.type;
@@ -119,7 +119,7 @@ public class DefaultBinder : Binder
     {
         var q = type is not null
             ? GetMethods(type, methodName.Name, isStatic)
-            : PredefinedType
+            : s_predefinedTypes
                 .Concat(_types)
                 .Where(t => t.Value.isStatic)
                 .SelectMany(t => GetMethods(t.Value.type, methodName.Name, isStatic));
@@ -143,7 +143,7 @@ public class DefaultBinder : Binder
             : BindingFlags.Public | BindingFlags.Instance;
 
         var q = type?.GetMembers(bindingFlags)
-            ?? PredefinedType
+            ?? s_predefinedTypes
                 .Concat(_types)
                 .Where(t => t.Value.isStatic)
                 .SelectMany(t => t.Value.type.GetMembers(bindingFlags));
