@@ -311,6 +311,34 @@ public class ExpressionParserTest
     public void Evaluate_NegatedUInt32_ReturnsNegatedInt64(string expression, long expected) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<long>().And.EqualTo(expected));
 
+    [TestCaseSource(nameof(RealLiteralSource))]
+    public void Evaluate_RealLiteral_ReturnsValueOfLiteralType(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
+
+    private static IEnumerable<TestCaseData> RealLiteralSource
+    {
+        get
+        {
+            //
+            // The integer part does not fit in ulong.
+            //
+            yield return new("100000000000000000000.0", 1e20);
+            yield return new("100000000000000000000e0", 1e20);
+            yield return new("100000000000000000000d", 1e20);
+            yield return new("100000000000000000000f", 1e20f);
+            yield return new("100000000000000000000m", 100000000000000000000m);
+            yield return new("79228162514264337593543950335m", decimal.MaxValue);
+            yield return new("18446744073709551616.5", 18446744073709551616.5);
+
+            //
+            // As in C#, a value too small for the type becomes zero.
+            //
+            yield return new("1e-400", 0d);
+            yield return new("1e-50f", 0f);
+            yield return new("1e-100m", 0m);
+        }
+    }
+
     [TestCase("-'a'", -97)]
     [TestCase("+'a'", 97)]
     [TestCase("~'a'", -98)]

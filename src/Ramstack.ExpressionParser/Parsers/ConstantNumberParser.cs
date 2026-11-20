@@ -53,7 +53,7 @@ internal sealed class ConstantNumberParser : Parser<object>
             count = TryParseBinInteger(s, out number);
             if (count == 0)
             {
-                count = TryParseInteger(s, out number);
+                count = TryParseInteger(s, out number, out var overflow);
                 if (count == 0)
                     goto FAIL;
 
@@ -64,6 +64,9 @@ internal sealed class ConstantNumberParser : Parser<object>
                     context.Advance(p);
                     return true;
                 }
+
+                if (overflow)
+                    Error_IntegralConstantTooLarge();
             }
         }
 
@@ -76,43 +79,33 @@ internal sealed class ConstantNumberParser : Parser<object>
         return false;
     }
 
-    private static int TryParseInteger(ReadOnlySpan<char> s, out ulong value)
+    private static int TryParseInteger(ReadOnlySpan<char> s, out ulong value, out bool overflow)
     {
-        if (s.Length != 0)
+        var p = 0;
+        var r = 0ul;
+
+        overflow = false;
+
+        for (; (uint)p < (uint)s.Length; p++)
         {
-            var p = 0;
-            var r = 0ul;
+            var d = (uint)s[p] - '0';
+            if (d > 9)
+                break;
 
-            for (; (uint)p < (uint)s.Length; p++)
-            {
-                var d = (uint)s[p] - '0';
-                if (d > 9)
-                {
-                    if (p == 0)
-                    {
-                        goto FAIL;
-                    }
+            //
+            // A number too large for ulong is still read to the end, since its digits
+            // can be the integer part of a real literal, such as 100000000000000000000.0.
+            //
+            if (r > ulong.MaxValue / 10
+                || (r == ulong.MaxValue / 10 && d > ulong.MaxValue % 10))
+                overflow = true;
 
-                    break;
-                }
-
-                //
-                // Check for overflow
-                //
-                if (r > ulong.MaxValue / 10
-                    || (r == ulong.MaxValue / 10 && d > ulong.MaxValue % 10))
-                    goto FAIL;
-
+            if (!overflow)
                 r = r * 10 + d;
-            }
-
-            value = r;
-            return p;
         }
 
-        FAIL:
-        value = 0;
-        return 0;
+        value = r;
+        return p;
     }
 
     private static int TryParseHexInteger(ReadOnlySpan<char> s, out ulong value)
@@ -141,7 +134,7 @@ internal sealed class ConstantNumberParser : Parser<object>
                 // Check for overflow
                 //
                 if (r > ulong.MaxValue / 16)
-                    goto FAIL;
+                    Error_IntegralConstantTooLarge();
 
                 r = r * 16 + d;
             }
@@ -179,7 +172,7 @@ internal sealed class ConstantNumberParser : Parser<object>
                 // Check for overflow
                 //
                 if (r > ulong.MaxValue >> 1)
-                    goto FAIL;
+                    Error_IntegralConstantTooLarge();
 
                 r = (r << 1) + d;
             }
@@ -236,11 +229,15 @@ internal sealed class ConstantNumberParser : Parser<object>
             }
         }
 
-        if (i != p)
+        var suffix = (uint)i < (uint)s.Length ? s[i] & ~0x20 : '\0';
+
+        //
+        // As in C#, digits followed by a real type suffix, such as 1d, also form a real literal.
+        //
+        if (i != p || suffix is 'F' or 'M' or 'D')
         {
             if ((uint)i <= (uint)s.Length)
             {
-                var suffix = (uint)i < (uint)s.Length ? s[i] & ~0x20 : '\0';
                 s = s[..i];
 
                 switch (suffix)
@@ -272,17 +269,38 @@ internal sealed class ConstantNumberParser : Parser<object>
         static bool IsAsciiDigit(char c) =>
             (uint)c - '0' <= 9;
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static object ParseSingle(ReadOnlySpan<char> s) =>
-            float.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+        //
+        // As in C#, a value too large for the type is an error, and a value too small for it becomes zero.
+        //
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static object ParseDouble(ReadOnlySpan<char> s) =>
-            double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+        static object ParseSingle(ReadOnlySpan<char> s)
+        {
+            var value = float.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+            if (float.IsInfinity(value))
+                Error_FloatingPointConstantOutOfRange(typeof(float));
+
+            return value;
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static object ParseDecimal(ReadOnlySpan<char> s) =>
-            decimal.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+        static object ParseDouble(ReadOnlySpan<char> s)
+        {
+            var value = double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+            if (double.IsInfinity(value))
+                Error_FloatingPointConstantOutOfRange(typeof(double));
+
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static object ParseDecimal(ReadOnlySpan<char> s)
+        {
+            if (!decimal.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+                Error_FloatingPointConstantOutOfRange(typeof(decimal));
+
+            return value;
+        }
     }
 
     private static int AdjustNumericType(ReadOnlySpan<char> s, ulong number, out object value)
@@ -431,4 +449,12 @@ internal sealed class ConstantNumberParser : Parser<object>
         value = number;
         return 2;
     }
+
+    [DoesNotReturn]
+    private static void Error_IntegralConstantTooLarge() =>
+        Parser.FatalError("Integral constant is too large.");
+
+    [DoesNotReturn]
+    private static void Error_FloatingPointConstantOutOfRange(Type type) =>
+        Parser.FatalError($"Floating-point constant is outside the range of type '{type}'.");
 }
