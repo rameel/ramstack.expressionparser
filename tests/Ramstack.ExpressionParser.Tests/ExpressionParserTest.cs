@@ -173,7 +173,7 @@ public class ExpressionParserTest
 
     [TestCaseSource(nameof(EvaluatesSource))]
     public void EvaluateExpression(string expression, object result) =>
-        Assert.That(ExpressionParser.Evaluate(expression), Is.EqualTo(result));
+        Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf(result.GetType()).And.EqualTo(result));
 
     [Test]
     public void Evaluate_DateTimeToday_ReturnsCurrentDate()
@@ -274,7 +274,7 @@ public class ExpressionParserTest
     [TestCase("string.Concat(Objects)", "x1")]
     [TestCase("""string.Concat(Objects) + "!" """, "x1!")]
     public void Evaluate_ArrayForParamArray_PassesArray(string expression, object expected) =>
-        Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.EqualTo(expected));
+        Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
 
     [TestCase("Sum(1, 2, 3)", 6)]
     [TestCase("Sum(5)", 5)]
@@ -284,13 +284,13 @@ public class ExpressionParserTest
     [TestCase("Sum()", 0)]
     [TestCase("Count()", 0)]
     public void Evaluate_ElementsForParamArray_CreatesArray(string expression, object expected) =>
-        Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.EqualTo(expected));
+        Assert.That(ExpressionParser.Evaluate(expression, new ParamArrayContext()), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
 
     [TestCase("Doubler(2)", 4)]
     [TestCase("Doubler.Invoke(2)", 4)]
     [TestCase("Doubler.ToString()", "System.Func`2[System.Int32,System.Int32]")]
     public void Evaluate_DelegateMember_CallsDelegateAndItsMethods(string expression, object expected) =>
-        Assert.That(ExpressionParser.Evaluate(expression, new DelegateContext()), Is.EqualTo(expected));
+        Assert.That(ExpressionParser.Evaluate(expression, new DelegateContext()), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
 
     [TestCase("StaticDelegates.Tripler(2)")]
     [TestCase("StaticDelegates.Tripler.Invoke(2)")]
@@ -311,7 +311,7 @@ public class ExpressionParserTest
     [TestCase("""Flag ? StringOnly : "x" """, "string")]
     [TestCase("StringAndBool && Flag", true)]
     public void Evaluate_UserDefinedImplicitConversion_UsesOperatorForTargetType(string expression, object expected) =>
-        Assert.That(ExpressionParser.Evaluate(expression, new ConversionContext()), Is.EqualTo(expected));
+        Assert.That(ExpressionParser.Evaluate(expression, new ConversionContext()), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
 
     [Test]
     public void Parse_NoUserDefinedImplicitConversionToTargetType_ReturnsError()
@@ -334,7 +334,7 @@ public class ExpressionParserTest
     [TestCase(""" "a,b".Split(",").Length """, 2)]
     [TestCase(""" "a,b".Split(',').Length """, 2)]
     public void Evaluate_OmittedOptionalArguments_UsesDefaultValues(string expression, object expected) =>
-        Assert.That(ExpressionParser.Evaluate(expression, new OptionalContext()), Is.EqualTo(expected));
+        Assert.That(ExpressionParser.Evaluate(expression, new OptionalContext()), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
 
     [TestCase("Numbers.Length", 3)]
     [TestCase("Matrix.Length", 6)]
@@ -343,7 +343,7 @@ public class ExpressionParserTest
     [TestCase("Jagged[1].Length", 3)]
     [TestCase("Untyped.Length", 2)]
     public void Evaluate_ArrayLength_ReturnsNumberOfElements(string expression, int expected) =>
-        Assert.That(ExpressionParser.Evaluate(expression, new ArrayContext()), Is.EqualTo(expected));
+        Assert.That(ExpressionParser.Evaluate(expression, new ArrayContext()), Is.TypeOf<int>().And.EqualTo(expected));
 
     [TestCase("!Flag", false)]
     [TestCase("!NullableFlag", true)]
