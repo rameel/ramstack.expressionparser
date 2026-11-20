@@ -436,9 +436,25 @@ internal static class MethodResolver
             var hierarchyDepth1 = GetHierarchyDepth(m1.DeclaringType);
             var hierarchyDepth2 = GetHierarchyDepth(m2.DeclaringType);
 
-            // The most derived method is the most specific one.
+            //
+            // The most derived method is the most specific one. An interface has no base class,
+            // so its depth equals the depth of its base interfaces and Object. As in C#, a method
+            // of a derived interface hides the method with the same signature declared in a base
+            // interface or Object.
+            //
             if (hierarchyDepth1 == hierarchyDepth2)
+            {
+                if (m1.DeclaringType != m2.DeclaringType)
+                {
+                    if (m2.DeclaringType.IsAssignableFrom(m1.DeclaringType))
+                        return 1;
+
+                    if (m1.DeclaringType.IsAssignableFrom(m2.DeclaringType))
+                        return 2;
+                }
+
                 return 0;
+            }
 
             if (hierarchyDepth1 < hierarchyDepth2)
                 return 2;

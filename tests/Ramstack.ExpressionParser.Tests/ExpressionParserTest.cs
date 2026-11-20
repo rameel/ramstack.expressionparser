@@ -206,6 +206,60 @@ public class ExpressionParserTest
         Assert.That(exception!.Message, Is.EqualTo("Cannot resolve symbol 'Extra'."));
     }
 
+    [TestCase("List.Count", 3)]
+    [TestCase("List.Contains(2)", true)]
+    [TestCase("List.GetEnumerator().MoveNext()", true)]
+    [TestCase("List.GetHashCode() == List.GetHashCode()", true)]
+    [TestCase("ReadOnly.Count", 3)]
+    [TestCase("Derived[1]", "item 1")]
+    [TestCase("Derived.Describe()", "InterfaceImplementation.Describe")]
+    [TestCase("Derived.ToString()", "InterfaceImplementation")]
+    [TestCase("Derived.Equals(Derived)", true)]
+    public void Evaluate_MemberOfBaseInterfaceOrObject_BindsMember(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new InterfaceContext()), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
+
+    [TestCase("Derived.Value", "IDerivedInterface.Value")]
+    [TestCase("Derived.Name()", "IDerivedInterface.Name")]
+    public void Evaluate_MemberHiddenByDerivedInterface_BindsMemberOfDerivedInterface(string expression, string expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new InterfaceContext()), Is.EqualTo(expected));
+
+    [TestCase("IDerivedInterface.Create()", "IBaseInterface.Create")]
+    [TestCase("IDerivedInterface.ReferenceEquals(Derived, Derived)", true)]
+    public void Evaluate_StaticMemberOfBaseInterfaceOrObject_BindsMember(string expression, object expected)
+    {
+        var parameter = Expression.Parameter(typeof(InterfaceContext), "c");
+        var binder = new ContextAwareBinder(parameter);
+        binder.RegisterType(typeof(IDerivedInterface));
+
+        var result = ExpressionParser.Parse(expression, binder);
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+
+        var body = Expression.Convert(result.Value!, typeof(object));
+        var value = Expression.Lambda<Func<InterfaceContext, object>>(body, parameter).Compile()(new InterfaceContext());
+        Assert.That(value, Is.TypeOf(expected.GetType()).And.EqualTo(expected));
+    }
+
+    [Test]
+    public void Evaluate_InterfaceContext_BindsMembersOfBaseInterfacesAndObject()
+    {
+        IList<int> list = [1, 2, 3];
+
+        Assert.That(ExpressionParser.Evaluate<IList<int>, int>("Count", list), Is.EqualTo(3));
+        Assert.That(ExpressionParser.Evaluate<IList<int>, bool>("Contains(2)", list), Is.True);
+        Assert.That(ExpressionParser.Evaluate<IList<int>, string>("ToString()", list), Is.EqualTo(list.ToString()));
+    }
+
+    [TestCase("Both.Count")]
+    [TestCase("Both[0]")]
+    public void Parse_MemberOfUnrelatedBaseInterfaces_ReturnsAmbiguityError(string expression)
+    {
+        var parameter = Expression.Parameter(typeof(InterfaceContext), "c");
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
+    }
+
     [TestCaseSource(nameof(InconvertibleResultSource))]
     public void Evaluate_ResultNotConvertibleToResultType_ThrowsArgumentException(Func<object?> evaluate, string expected)
     {
@@ -832,6 +886,49 @@ public class ExpressionParserTest
     {
         public int Value { get; } = 1;
         public int Extra { get; } = 2;
+    }
+
+    public interface IBaseInterface
+    {
+        int Value { get; }
+        string this[int index] { get; }
+        string Name();
+        string Describe();
+
+        //
+        // Declaring ToString in the interface makes the call 'Derived.ToString()' choose between
+        // this method and Object.ToString, which have the same signature.
+        //
+        string ToString();
+
+        static string Create() => "IBaseInterface.Create";
+    }
+
+    public interface IDerivedInterface : IBaseInterface
+    {
+        new string Value { get; }
+        new string Name();
+    }
+
+    public interface IListAndReadOnlyList : IList<int>, IReadOnlyList<int>;
+
+    public class InterfaceImplementation : IDerivedInterface
+    {
+        int IBaseInterface.Value => 1;
+        string IDerivedInterface.Value => "IDerivedInterface.Value";
+        public string this[int index] => $"item {index}";
+        string IBaseInterface.Name() => "IBaseInterface.Name";
+        string IDerivedInterface.Name() => "IDerivedInterface.Name";
+        public string Describe() => "InterfaceImplementation.Describe";
+        public override string ToString() => "InterfaceImplementation";
+    }
+
+    public class InterfaceContext
+    {
+        public IList<int> List { get; } = new List<int> { 1, 2, 3 };
+        public IReadOnlyList<int> ReadOnly { get; } = new List<int> { 1, 2, 3 };
+        public IDerivedInterface Derived { get; } = new InterfaceImplementation();
+        public IListAndReadOnlyList? Both { get; }
     }
 
     public class LogicalNotContext
