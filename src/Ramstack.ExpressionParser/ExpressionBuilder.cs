@@ -14,7 +14,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     /// <summary>
     /// The overloads of the <c>string.Concat</c> method that the <c>+</c> operator with a string operand is bound to.
     /// </summary>
-    private static readonly MethodBase[] ConcatMethods = typeof(string)
+    private static readonly MethodBase[] s_concatMethods = typeof(string)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Where(m =>
             m.Name == nameof(string.Concat)
@@ -117,7 +117,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                     }
                 }
 
-                var cmi = (MethodInfo?)MethodResolver.ResolveMethod(ConcatMethods, argumentTypes.ToArray())!;
+                var cmi = (MethodInfo?)MethodResolver.ResolveMethod(s_concatMethods, argumentTypes.ToArray())!;
                 Debug.Assert(cmi is not null);
 
                 var args = CreateInjectingArguments(cmi, arguments);
