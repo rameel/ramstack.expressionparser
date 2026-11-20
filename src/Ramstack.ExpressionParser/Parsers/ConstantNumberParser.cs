@@ -312,24 +312,10 @@ internal sealed class ConstantNumberParser : Parser<object>
         {
             var c0 = s[0] & ~0x20;
 
-            if (c0 == 'D')
-            {
-                value = (double)number;
-                return 1;
-            }
-
-            if (c0 == 'F')
-            {
-                value = (float)number;
-                return 1;
-            }
-
-            if (c0 == 'M')
-            {
-                value = new decimal(number);
-                return 1;
-            }
-
+            //
+            // As in C#, the real type suffixes D, F, and M follow only decimal digits, which TryParseReal reads.
+            // After a hexadecimal or binary literal, such a letter is not part of the literal.
+            //
             if (c0 is 'L' or 'U')
             {
                 var c1 = s.Length > 1 ? s[1] & ~0x20 : '\0';

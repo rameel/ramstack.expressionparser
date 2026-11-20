@@ -311,6 +311,14 @@ public class ExpressionParserTest
     public void Evaluate_NegatedUInt32_ReturnsNegatedInt64(string expression, long expected) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<long>().And.EqualTo(expected));
 
+    [TestCase("0x1d", 29)]
+    [TestCase("0x1F", 31)]
+    [TestCase("0b1L", 1L)]
+    [TestCase("0b1u", 1u)]
+    [TestCase("0xFFul", 255ul)]
+    public void Evaluate_HexadecimalOrBinaryLiteral_ReturnsInteger(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
+
     [TestCaseSource(nameof(RealLiteralSource))]
     public void Evaluate_RealLiteral_ReturnsValueOfLiteralType(string expression, object expected) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
