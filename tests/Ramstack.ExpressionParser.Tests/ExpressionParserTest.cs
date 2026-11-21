@@ -223,6 +223,29 @@ public class ExpressionParserTest
     public void Evaluate_MemberHiddenByDerivedInterface_BindsMemberOfDerivedInterface(string expression, string expected) =>
         Assert.That(ExpressionParser.Evaluate(expression, new InterfaceContext()), Is.EqualTo(expected));
 
+    [TestCase("Derived.Field", 2)]
+    [TestCase("Derived.Property", "derived")]
+    public void Evaluate_MemberHiddenByDerivedClass_BindsMemberOfDerivedClass(string expression, object expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new { Derived = new DerivedMembers() }), Is.TypeOf(expected.GetType()).And.EqualTo(expected));
+
+    [Test]
+    public void Evaluate_UnqualifiedMemberInDerivedContext_BindsMemberOfDerivedClass() =>
+        Assert.That(ExpressionParser.Evaluate("Field", new DerivedMembers()), Is.TypeOf<int>().And.EqualTo(2));
+
+    [Test]
+    public void Parse_SameMemberImportedFromBaseAndDerivedTypes_ReturnsAmbiguityError()
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(typeof(BaseMembers), importAsStatic: true);
+        binder.RegisterType(typeof(DerivedMembers), importAsStatic: true);
+
+        var result = ExpressionParser.Parse("ImportedMember", binder);
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found")
+            .And.Contain(nameof(BaseMembers)).And.Contain(nameof(DerivedMembers)));
+    }
+
     [TestCase("IDerivedInterface.Create()", "IBaseInterface.Create")]
     [TestCase("IDerivedInterface.ReferenceEquals(Derived, Derived)", true)]
     public void Evaluate_StaticMemberOfBaseInterfaceOrObject_BindsMember(string expression, object expected)
@@ -965,6 +988,20 @@ public class ExpressionParserTest
         public IReadOnlyList<int> ReadOnly { get; } = new List<int> { 1, 2, 3 };
         public IDerivedInterface Derived { get; } = new InterfaceImplementation();
         public IListAndReadOnlyList? Both { get; }
+    }
+
+    private class BaseMembers
+    {
+        public static int ImportedMember => 1;
+        public readonly int Field = 1;
+        public int Property { get; } = 1;
+    }
+
+    private sealed class DerivedMembers : BaseMembers
+    {
+        public static new int ImportedMember => 2;
+        public new readonly int Field = 2;
+        public new string Property { get; } = "derived";
     }
 
     public class LogicalNotContext
