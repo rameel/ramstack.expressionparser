@@ -232,6 +232,36 @@ public class ExpressionParserTest
     public void Evaluate_UnqualifiedMemberInDerivedContext_BindsMemberOfDerivedClass() =>
         Assert.That(ExpressionParser.Evaluate("Field", new DerivedMembers()), Is.TypeOf<int>().And.EqualTo(2));
 
+    [TestCase("DerivedMembers.InheritedField", 3)]
+    [TestCase("DerivedMembers.InheritedProperty", 4)]
+    [TestCase("DerivedMembers.InheritedMethod()", 5)]
+    [TestCase("DerivedMembers.ImportedMember", 2)]
+    public void Parse_QualifiedStaticMemberOfDerivedClass_BindsMember(string expression, int expected)
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(typeof(DerivedMembers));
+
+        var result = ExpressionParser.Parse(expression, binder);
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+
+        var value = Expression.Lambda<Func<int>>(result.Value!).Compile()();
+        Assert.That(value, Is.EqualTo(expected));
+    }
+
+    [TestCase("InheritedField", "InheritedField")]
+    [TestCase("InheritedProperty", "InheritedProperty")]
+    [TestCase("InheritedMethod()", "InheritedMethod")]
+    public void Parse_InheritedStaticMemberOfImportedClass_ReturnsUnresolvedSymbol(string expression, string memberName)
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(typeof(DerivedMembers), importAsStatic: true);
+
+        var result = ExpressionParser.Parse(expression, binder);
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Is.EqualTo($"Cannot resolve symbol '{memberName}'."));
+    }
+
     [Test]
     public void Parse_SameMemberImportedFromBaseAndDerivedTypes_ReturnsAmbiguityError()
     {
@@ -304,6 +334,19 @@ public class ExpressionParserTest
     [Test]
     public void Evaluate_MethodsOfVariantBaseInterfaces_DoNotHideEachOther() =>
         Assert.That(ExpressionParser.Evaluate("Consumers.Pick(\"x\")", new InterfaceContext()), Is.EqualTo("IConsumer<string>.Pick(string)"));
+
+    [Test]
+    public void Parse_ApplicableStaticMethodOfDerivedClass_HidesMethodsOfBaseClass()
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(typeof(DerivedOverloads));
+
+        var result = ExpressionParser.Parse("DerivedOverloads.Create(1)", binder);
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+
+        var value = Expression.Lambda<Func<string>>(result.Value!).Compile()();
+        Assert.That(value, Is.EqualTo("DerivedOverloads.Create(long)"));
+    }
 
     [TestCase(typeof(BaseOverloads), typeof(DerivedOverloads), "DerivedOverloads.Create(long)")]
     [TestCase(typeof(IStaticOverloads), typeof(ClassOverloads), "ClassOverloads.Create(long)")]
@@ -1077,9 +1120,13 @@ public class ExpressionParserTest
 
     private class BaseMembers
     {
+        public const int InheritedField = 3;
         public static int ImportedMember => 1;
+        public static int InheritedProperty => 4;
         public readonly int Field = 1;
         public int Property { get; } = 1;
+
+        public static int InheritedMethod() => 5;
     }
 
     private sealed class DerivedMembers : BaseMembers

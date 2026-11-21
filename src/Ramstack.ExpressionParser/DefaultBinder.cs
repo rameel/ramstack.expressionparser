@@ -117,12 +117,18 @@ public class DefaultBinder : Binder
     /// <inheritdoc />
     public override MethodInfo? BindToMethod(Type? type, Identifier methodName, Type[] parameterTypes, bool isStatic)
     {
+        var bindingFlags = isStatic
+            ? BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static
+            : BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Instance;
+
         var q = type is not null
-            ? type.GetMemberLookupTypes().SelectMany(t => GetMethods(t, methodName.Name, isStatic))
+            ? type
+                .GetMemberLookupTypes()
+                .SelectMany(t => GetMethods(t, methodName.Name, bindingFlags | BindingFlags.FlattenHierarchy))
             : s_predefinedTypes
                 .Concat(_types)
                 .Where(t => t.Value.isStatic)
-                .SelectMany(t => GetMethods(t.Value.type, methodName.Name, isStatic));
+                .SelectMany(t => GetMethods(t.Value.type, methodName.Name, bindingFlags));
 
         var methods = q.ToArray();
         if (methods.Length == 0)
@@ -142,7 +148,8 @@ public class DefaultBinder : Binder
             ? BindingFlags.Public | BindingFlags.Static
             : BindingFlags.Public | BindingFlags.Instance;
 
-        var q = type?.GetMemberLookupTypes().SelectMany(t => t.GetMembers(bindingFlags))
+        var q = type?.GetMemberLookupTypes()
+            .SelectMany(t => t.GetMembers(bindingFlags | BindingFlags.FlattenHierarchy))
             ?? s_predefinedTypes
                 .Concat(_types)
                 .Where(t => t.Value.isStatic)
@@ -176,15 +183,12 @@ public class DefaultBinder : Binder
         return null;
     }
 
-    private static IEnumerable<MethodBase> GetMethods(Type type, string methodName, bool isStatic)
+    private static IEnumerable<MethodBase> GetMethods(Type type, string methodName, BindingFlags bindingFlags)
     {
-        var bindingFlags = isStatic
-            ? BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static
-            : BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Instance;
-
         return type
             .GetMethods(bindingFlags)
-            .Where(m => string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase))
+            .Where(m =>
+                string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase))
             .Distinct();
     }
 }
