@@ -23,6 +23,11 @@ internal static class MethodResolver
     /// The method that best matches the argument types, or <see langword="null" /> if no candidate
     /// accepts the argument types or none of them matches better than all the others.
     /// </returns>
+    /// <remarks>
+    /// As in C#, the method is chosen only among the applicable methods of the most derived types:
+    /// an applicable method declared in a base type of the type that declares another applicable
+    /// method is not considered.
+    /// </remarks>
     public static MethodBase? ResolveMethod(IReadOnlyList<MethodBase> match, Type[] argumentTypes)
     {
         if (match.Count == 0)
@@ -199,6 +204,8 @@ internal static class MethodResolver
         if (currentIndex == 1)
             return candidates[0];
 
+        currentIndex = RemoveMethodsOfBaseTypes(candidates, parameterArrayTypes, currentIndex);
+
         //
         // As in C#, the method to invoke must be more specific than every other candidate.
         // Such a method wins each comparison, so the walk below always ends on it. A candidate
@@ -249,6 +256,114 @@ internal static class MethodResolver
         }
 
         return candidates[min];
+    }
+
+    /// <summary>
+    /// Removes the candidates declared in a base type of the type that declares another candidate.
+    /// </summary>
+    /// <param name="candidates">The applicable candidate methods.</param>
+    /// <param name="parameterArrayTypes">The element types of the parameter arrays of the candidates.</param>
+    /// <param name="count">The number of candidates.</param>
+    /// <returns>
+    /// The number of remaining candidates, which are moved to the start of both arrays.
+    /// </returns>
+    private static int RemoveMethodsOfBaseTypes(MethodBase[] candidates, Type?[] parameterArrayTypes, int count)
+    {
+        //
+        // As in C#, only the methods of the most derived types remain, even if a removed method
+        // matches the arguments better.
+        //
+        var declaringTypes = new Type[count];
+        for (var i = 0; i < count; i++)
+            declaringTypes[i] = GetIntroducingType(candidates[i]);
+
+        var remaining = 0;
+        for (var i = 0; i < count; i++)
+        {
+            if (IsHidden(declaringTypes[i], declaringTypes))
+                continue;
+
+            candidates[remaining] = candidates[i];
+            parameterArrayTypes[remaining] = parameterArrayTypes[i];
+            remaining++;
+        }
+
+        return remaining;
+
+        static bool IsHidden(Type type, Type[] declaringTypes)
+        {
+            foreach (var other in declaringTypes)
+                if (HidesMethodsOf(other, type))
+                    return true;
+
+            return false;
+        }
+
+        static bool HidesMethodsOf(Type other, Type type)
+        {
+            //
+            // The base types of an interface are its base interfaces and Object, while an interface
+            // is not a base type of a class or struct. As in C#, a method of a class other than Object
+            // also removes the methods declared in interfaces. Base types are found by inheritance:
+            // a variant interface can be assignable from another instantiation it does not inherit.
+            //
+            if (type.IsInterface)
+                return other.IsInterface
+                    ? other.GetInterfaces().Contains(type)
+                    : other.IsClass && other != typeof(object);
+
+            return other.IsSubclassOf(type)
+                || other.IsInterface && type == typeof(object);
+        }
+    }
+
+    /// <summary>
+    /// Returns the type that introduced the specified method.
+    /// </summary>
+    /// <param name="method">The method to get the introducing type for.</param>
+    /// <returns>
+    /// The type that declares the method or, for an override, the type that declares
+    /// the overridden method.
+    /// </returns>
+    private static Type GetIntroducingType(MethodBase method)
+    {
+        if (method is MethodInfo mi)
+        {
+            var definition = mi.GetBaseDefinition();
+
+            //
+            // A covariant return override occupies a new slot, so GetBaseDefinition returns
+            // the override itself. The compiler marks such an override with PreserveBaseOverridesAttribute.
+            //
+            if (definition.IsDefined(typeof(PreserveBaseOverridesAttribute), inherit: false)
+                && FindOverriddenMethod(definition) is { } overridden)
+                return GetIntroducingType(overridden);
+
+            method = definition;
+        }
+
+        Debug.Assert(method.DeclaringType is not null);
+        return method.DeclaringType;
+
+        static MethodInfo? FindOverriddenMethod(MethodInfo method)
+        {
+            //
+            // An override overrides the nearest virtual method with the same parameter types.
+            //
+            var parameters = method.GetParameters();
+
+            for (var type = method.DeclaringType!.BaseType; type is not null; type = type.BaseType)
+            {
+                var overridden = type
+                    .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .FirstOrDefault(m => m.IsVirtual && m.Name == method.Name && HasSameParameterTypes(m.GetParameters(), parameters));
+
+                if (overridden is not null)
+                    return overridden;
+            }
+
+            return null;
+        }
     }
 
     private static int FindMostSpecific(
@@ -417,80 +532,42 @@ internal static class MethodResolver
         MethodBase m2, Type? paramArrayType2,
         Type[] types)
     {
-        // Find the most specific method based on the parameters.
-        var res = FindMostSpecific(
-            m1.GetParameters(), paramArrayType1,
-            m2.GetParameters(), paramArrayType2, types);
+        var p1 = m1.GetParameters();
+        var p2 = m2.GetParameters();
 
-        // If the match was not ambiguous then return the result.
-        if (res != 0)
-            return res;
+        var result = FindMostSpecific(p1, paramArrayType1, p2, paramArrayType2, types);
+        if (result != 0)
+            return result;
 
-        // Check to see if the methods have the exact same name and signature.
-        if (CompareSignature(m1, m2))
+        //
+        // Reflection lists a covariant return override along with the method it overrides.
+        // Both belong to the type that introduced the method, so neither removes the other,
+        // and the override is chosen for its more specific return type.
+        //
+        if (HasSameParameterTypes(p1, p2))
         {
             Debug.Assert(m1.DeclaringType is not null);
             Debug.Assert(m2.DeclaringType is not null);
 
-            // Determine the depth of the declaring types for both methods.
-            var hierarchyDepth1 = GetHierarchyDepth(m1.DeclaringType);
-            var hierarchyDepth2 = GetHierarchyDepth(m2.DeclaringType);
+            if (m1.DeclaringType.IsSubclassOf(m2.DeclaringType))
+                return 1;
 
-            //
-            // The most derived method is the most specific one. An interface has no base class,
-            // so its depth equals the depth of its base interfaces and Object. As in C#, a method
-            // of a derived interface hides the method with the same signature declared in a base
-            // interface or Object.
-            //
-            if (hierarchyDepth1 == hierarchyDepth2)
-            {
-                if (m1.DeclaringType != m2.DeclaringType)
-                {
-                    if (m2.DeclaringType.IsAssignableFrom(m1.DeclaringType))
-                        return 1;
-
-                    if (m1.DeclaringType.IsAssignableFrom(m2.DeclaringType))
-                        return 2;
-                }
-
-                return 0;
-            }
-
-            if (hierarchyDepth1 < hierarchyDepth2)
+            if (m2.DeclaringType.IsSubclassOf(m1.DeclaringType))
                 return 2;
-
-            return 1;
         }
 
-        // The match is ambiguous.
         return 0;
     }
 
-    private static bool CompareSignature(MethodBase m1, MethodBase m2)
+    private static bool HasSameParameterTypes(ParameterInfo[] p1, ParameterInfo[] p2)
     {
-        var params1 = m1.GetParameters();
-        var params2 = m2.GetParameters();
-
-        if (params1.Length != params2.Length)
+        if (p1.Length != p2.Length)
             return false;
 
-        for (var i = 0; i < params1.Length; i++)
-            if (params1[i].ParameterType != params2[i].ParameterType)
+        for (var i = 0; i < p1.Length; i++)
+            if (p1[i].ParameterType != p2[i].ParameterType)
                 return false;
 
         return true;
-    }
-
-    private static int GetHierarchyDepth(Type? type)
-    {
-        var depth = 0;
-        do
-        {
-            depth++;
-            type = type!.BaseType;
-        }
-        while (type is not null);
-
-        return depth;
     }
 }

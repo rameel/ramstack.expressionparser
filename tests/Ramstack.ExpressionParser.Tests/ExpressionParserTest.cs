@@ -272,6 +272,69 @@ public class ExpressionParserTest
         Assert.That(ExpressionParser.Evaluate<IList<int>, string>("ToString()", list), Is.EqualTo(list.ToString()));
     }
 
+    [TestCase("Derived.Pick(1)", "DerivedOverloads.Pick(long)")]
+    [TestCase("Derived.Overridden(1)", "DerivedOverloads.Overridden(long)")]
+    [TestCase("Derived.Optional()", "DerivedOverloads.Optional(int)")]
+    [TestCase("Derived[1]", "DerivedOverloads.this[long]")]
+    public void Evaluate_ApplicableMethodOfDerivedClass_HidesMethodsOfBaseClass(string expression, string expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new { Derived = new DerivedOverloads() }), Is.EqualTo(expected));
+
+    [Test]
+    public void Evaluate_NoApplicableMethodOfDerivedClass_BindsMethodOfBaseClass() =>
+        Assert.That(ExpressionParser.Evaluate("Derived.Pick(\"x\")", new { Derived = new DerivedOverloads() }), Is.EqualTo("BaseOverloads.Pick(string)"));
+
+    [TestCase("Covariant(1)", "BaseOverloads.Covariant(int)")]
+    [TestCase("Covariant(1L)", "DerivedOverloads.Covariant(long)")]
+    public void Parse_CovariantReturnOverride_BindsAsOverrideOfBaseClassMethod(string expression, string expected)
+    {
+        var parameter = Expression.Parameter(typeof(DerivedOverloads), "d");
+
+        var result = ExpressionParser.Parse(expression, new ContextAwareBinder(parameter));
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+        Assert.That(result.Value!.Type, Is.EqualTo(typeof(string)));
+
+        var value = Expression.Lambda<Func<DerivedOverloads, string>>(result.Value!, parameter).Compile()(new DerivedOverloads());
+        Assert.That(value, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void Evaluate_ApplicableMethodOfDerivedInterface_HidesMethodsOfBaseInterface() =>
+        Assert.That(ExpressionParser.Evaluate("Derived.Pick(1)", new InterfaceContext()), Is.EqualTo("IDerivedInterface.Pick(long)"));
+
+    [Test]
+    public void Evaluate_MethodsOfVariantBaseInterfaces_DoNotHideEachOther() =>
+        Assert.That(ExpressionParser.Evaluate("Consumers.Pick(\"x\")", new InterfaceContext()), Is.EqualTo("IConsumer<string>.Pick(string)"));
+
+    [TestCase(typeof(BaseOverloads), typeof(DerivedOverloads), "DerivedOverloads.Create(long)")]
+    [TestCase(typeof(IStaticOverloads), typeof(ClassOverloads), "ClassOverloads.Create(long)")]
+    [TestCase(typeof(IStaticOverloads), typeof(StructOverloads), "IStaticOverloads.Create(int)")]
+    public void Parse_StaticMethodsImportedFromSeveralTypes_ChoosesFromMostDerivedTypes(Type first, Type second, string expected)
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(first, importAsStatic: true);
+        binder.RegisterType(second, importAsStatic: true);
+
+        var result = ExpressionParser.Parse("Create(1)", binder);
+        Assert.That(result.Success, Is.True, result.ErrorMessage);
+
+        var value = Expression.Lambda<Func<string>>(result.Value!).Compile()();
+        Assert.That(value, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void Parse_SameStaticMethodImportedFromUnrelatedTypes_ReturnsAmbiguityError()
+    {
+        var binder = new DefaultBinder();
+        binder.RegisterType(typeof(BaseOverloads), importAsStatic: true);
+        binder.RegisterType(typeof(UnrelatedOverloads), importAsStatic: true);
+
+        var result = ExpressionParser.Parse("Create(1)", binder);
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found")
+            .And.Contain(nameof(BaseOverloads)).And.Contain(nameof(UnrelatedOverloads)));
+    }
+
     [TestCase("Both.Count")]
     [TestCase("Both[0]")]
     public void Parse_MemberOfUnrelatedBaseInterfaces_ReturnsAmbiguityError(string expression)
@@ -952,6 +1015,7 @@ public class ExpressionParserTest
         int Value { get; }
         string this[int index] { get; }
         string Name();
+        string Pick(int value);
         string Describe();
 
         //
@@ -967,9 +1031,27 @@ public class ExpressionParserTest
     {
         new string Value { get; }
         new string Name();
+        string Pick(long value);
     }
 
     public interface IListAndReadOnlyList : IList<int>, IReadOnlyList<int>;
+
+    public interface IConsumer<in T>
+    {
+        string Pick(T value);
+    }
+
+    //
+    // IConsumer<string> is assignable from IConsumer<object> by contravariance,
+    // but neither is a base interface of the other.
+    //
+    public interface IBothConsumers : IConsumer<object>, IConsumer<string>;
+
+    public class BothConsumers : IBothConsumers
+    {
+        string IConsumer<object>.Pick(object value) => "IConsumer<object>.Pick(object)";
+        string IConsumer<string>.Pick(string value) => "IConsumer<string>.Pick(string)";
+    }
 
     public class InterfaceImplementation : IDerivedInterface
     {
@@ -978,6 +1060,8 @@ public class ExpressionParserTest
         public string this[int index] => $"item {index}";
         string IBaseInterface.Name() => "IBaseInterface.Name";
         string IDerivedInterface.Name() => "IDerivedInterface.Name";
+        string IBaseInterface.Pick(int value) => "IBaseInterface.Pick(int)";
+        string IDerivedInterface.Pick(long value) => "IDerivedInterface.Pick(long)";
         public string Describe() => "InterfaceImplementation.Describe";
         public override string ToString() => "InterfaceImplementation";
     }
@@ -988,6 +1072,7 @@ public class ExpressionParserTest
         public IReadOnlyList<int> ReadOnly { get; } = new List<int> { 1, 2, 3 };
         public IDerivedInterface Derived { get; } = new InterfaceImplementation();
         public IListAndReadOnlyList? Both { get; }
+        public IBothConsumers Consumers { get; } = new BothConsumers();
     }
 
     private class BaseMembers
@@ -1002,6 +1087,77 @@ public class ExpressionParserTest
         public static new int ImportedMember => 2;
         public new readonly int Field = 2;
         public new string Property { get; } = "derived";
+    }
+
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "The tests resolve instance method overloads.")]
+    private class BaseOverloads
+    {
+        public string this[int index] => "BaseOverloads.this[int]";
+
+        public string Pick(int value) => "BaseOverloads.Pick(int)";
+        public string Pick(string value) => "BaseOverloads.Pick(string)";
+        public virtual string Overridden(int value) => "BaseOverloads.Overridden(int)";
+        public string Optional() => "BaseOverloads.Optional()";
+        public string Covariant(int value) => "BaseOverloads.Covariant(int)";
+        public virtual object Covariant(long value) => "BaseOverloads.Covariant(long)";
+
+        public static string Create(int value) => "BaseOverloads.Create(int)";
+    }
+
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "The tests resolve instance method overloads.")]
+    private sealed class DerivedOverloads : BaseOverloads
+    {
+        public string this[long index] => "DerivedOverloads.this[long]";
+
+        public string Pick(long value) => "DerivedOverloads.Pick(long)";
+
+        //
+        // In C#, an override belongs to the class that introduced the method,
+        // so the overload declared here hides it.
+        //
+        public override string Overridden(int value) => "DerivedOverloads.Overridden(int)";
+        public string Overridden(long value) => "DerivedOverloads.Overridden(long)";
+        public string Optional(int value = 0) => "DerivedOverloads.Optional(int)";
+
+        //
+        // A covariant return override also belongs to the base class, so it does not hide
+        // Covariant(int), although reflection reports it as a new method of this class.
+        //
+        public override string Covariant(long value) => "DerivedOverloads.Covariant(long)";
+
+        public static string Create(long value) => "DerivedOverloads.Create(long)";
+    }
+
+    private interface IStaticOverloads
+    {
+        static string Create(int value) => "IStaticOverloads.Create(int)";
+    }
+
+    //
+    // Unrelated to IStaticOverloads: in C#, a method of a class other than Object
+    // hides the methods of every interface.
+    //
+    private sealed class ClassOverloads
+    {
+        public static string Create(long value) => "ClassOverloads.Create(long)";
+    }
+
+    //
+    // An interface is not a base type of a struct, so its methods are not hidden.
+    //
+    private struct StructOverloads : IStaticOverloads
+    {
+        public static string Create(long value) => "StructOverloads.Create(long)";
+    }
+
+    //
+    // The base class only makes the hierarchy deeper than that of BaseOverloads.
+    //
+    private class UnrelatedBase;
+
+    private sealed class UnrelatedOverloads : UnrelatedBase
+    {
+        public static string Create(int value) => "UnrelatedOverloads.Create(int)";
     }
 
     public class LogicalNotContext
