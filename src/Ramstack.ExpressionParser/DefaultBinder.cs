@@ -155,10 +155,11 @@ public class DefaultBinder : Binder
             .ToArray();
 
         //
-        // The lookup in an interface includes its base interfaces, so, as in C#, a member
-        // of a derived interface hides the members with the same name of its base interfaces.
+        // As in C#, a field or property of a derived type hides matching members of its
+        // base types. For static imports, keep matches from each imported type so that
+        // a name found in two imports is ambiguous, as with using static in C#.
         //
-        if (type?.IsInterface == true && candidates.Length > 1)
+        if (type is not null && candidates.Length > 1)
             candidates = candidates
                 .Where(m => !candidates.Any(c =>
                     c.DeclaringType != m.DeclaringType
