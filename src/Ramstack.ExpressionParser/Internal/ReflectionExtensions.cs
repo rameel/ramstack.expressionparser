@@ -68,6 +68,30 @@ internal static class ReflectionExtensions
     }
 
     /// <summary>
+    /// Determines whether the specified type is a base type of another type.
+    /// </summary>
+    /// <param name="type">The type to evaluate.</param>
+    /// <param name="other">The type whose base types are checked.</param>
+    /// <returns>
+    /// <see langword="true" /> if <paramref name="type" /> is a base type of <paramref name="other" />;
+    /// otherwise, <see langword="false" />.
+    /// </returns>
+    /// <remarks>
+    /// As in C#, base types are determined by inheritance: the base types of a class or struct are its base classes,
+    /// and the base types of an interface are its base interfaces and <see cref="object" />. An interface implemented
+    /// by a class or struct is not its base type, and an instantiation of a variant interface is not a base type
+    /// of another instantiation that is assignable to it. A type is not a base type of itself.
+    /// </remarks>
+    public static bool IsBaseTypeOf(this Type type, Type other)
+    {
+        if (type.IsInterface)
+            return other.IsInterface && other.GetInterfaces().Contains(type);
+
+        return other.IsSubclassOf(type)
+            || other.IsInterface && type == typeof(object);
+    }
+
+    /// <summary>
     /// Determines whether the specified member is declared as static.
     /// </summary>
     /// <param name="memberInfo">The <see cref="MemberInfo" /> instance representing the member to evaluate.</param>

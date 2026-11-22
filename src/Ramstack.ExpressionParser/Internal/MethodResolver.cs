@@ -302,18 +302,11 @@ internal static class MethodResolver
         static bool HidesMethodsOf(Type other, Type type)
         {
             //
-            // The base types of an interface are its base interfaces and Object, while an interface
-            // is not a base type of a class or struct. As in C#, a method of a class other than Object
-            // also removes the methods declared in interfaces. Base types are found by inheritance:
-            // a variant interface can be assignable from another instantiation it does not inherit.
+            // As in C#, a method of a class other than Object also removes the methods declared
+            // in interfaces, although an interface is not a base type of a class.
             //
-            if (type.IsInterface)
-                return other.IsInterface
-                    ? other.GetInterfaces().Contains(type)
-                    : other.IsClass && other != typeof(object);
-
-            return other.IsSubclassOf(type)
-                || other.IsInterface && type == typeof(object);
+            return type.IsBaseTypeOf(other)
+                || type.IsInterface && other.IsClass && other != typeof(object);
         }
     }
 
