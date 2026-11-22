@@ -389,6 +389,16 @@ public class ExpressionParserTest
         Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
     }
 
+    [Test]
+    public void Parse_MemberOfVariantBaseInterfaces_ReturnsAmbiguityError()
+    {
+        var parameter = Expression.Parameter(typeof(InterfaceContext), "c");
+        var result = ExpressionParser.Parse("Producers.Value", new ContextAwareBinder(parameter));
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.ErrorMessage, Does.StartWith("Ambiguous match found"));
+    }
+
     [TestCaseSource(nameof(InconvertibleResultSource))]
     public void Evaluate_ResultNotConvertibleToResultType_ThrowsArgumentException(Func<object?> evaluate, string expected)
     {
@@ -1096,6 +1106,17 @@ public class ExpressionParserTest
         string IConsumer<string>.Pick(string value) => "IConsumer<string>.Pick(string)";
     }
 
+    public interface IProducer<out T>
+    {
+        T Value { get; }
+    }
+
+    //
+    // IProducer<object> is assignable from IProducer<string> by covariance,
+    // but neither is a base interface of the other.
+    //
+    public interface IBothProducers : IProducer<object>, IProducer<string>;
+
     public class InterfaceImplementation : IDerivedInterface
     {
         int IBaseInterface.Value => 1;
@@ -1116,6 +1137,7 @@ public class ExpressionParserTest
         public IDerivedInterface Derived { get; } = new InterfaceImplementation();
         public IListAndReadOnlyList? Both { get; }
         public IBothConsumers Consumers { get; } = new BothConsumers();
+        public IBothProducers? Producers { get; }
     }
 
     private class BaseMembers

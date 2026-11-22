@@ -168,9 +168,7 @@ public class DefaultBinder : Binder
         //
         if (type is not null && candidates.Length > 1)
             candidates = candidates
-                .Where(m => !candidates.Any(c =>
-                    c.DeclaringType != m.DeclaringType
-                    && m.DeclaringType!.IsAssignableFrom(c.DeclaringType)))
+                .Where(m => !candidates.Any(c => m.DeclaringType!.IsBaseTypeOf(c.DeclaringType!)))
                 .ToArray();
 
         switch (candidates.Length)
