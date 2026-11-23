@@ -37,6 +37,27 @@ partial class ExpressionBuilder
     }
 
     /// <summary>
+    /// Resolves the expression whose member is accessed, which is either a type name or a value.
+    /// </summary>
+    /// <param name="expr">The expression to the left of the member access.</param>
+    /// <returns>
+    /// The type whose member is accessed and the value whose member is accessed,
+    /// or <see langword="null" /> as the value if <paramref name="expr" /> is a type name.
+    /// </returns>
+    private (Type Type, Expression? Instance) ResolveMemberOwner(Expr expr)
+    {
+        var symbol = expr is Expr.Reference reference
+            ? ResolveSymbol(reference)
+            : Visit(expr);
+
+        if (symbol is Type type)
+            return (type, null);
+
+        var instance = (Expression)symbol;
+        return (instance.Type, instance);
+    }
+
+    /// <summary>
     /// Creates an expression that reads the specified field or property.
     /// </summary>
     /// <param name="expression">The expression of the instance, or <see langword="null" /> for a static member.</param>

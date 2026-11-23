@@ -297,39 +297,30 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         Expression ProcessMemberAccess(Expr.MemberAccess e)
         {
-            var instance = e.Expression is Expr.Reference r
-                ? ResolveSymbol(r)
-                : Visit(e.Expression);
-
-            if (e.Member is Expr.Reference m)
+            var (type, instance) = ResolveMemberOwner(e.Expression);
+            if (e.Member is not Expr.Reference member)
             {
-                Debug.Assert(instance is Type or Expression);
-
-                var type = instance as Type;
-                var expression = instance as Expression;
-
-                var memberInfo = Binder.BindToMember(type ?? expression?.Type, m.Value, isStatic: expression is null);
-                if (memberInfo is not null)
-                {
-                    if (!typeof(Delegate).IsAssignableFrom(memberInfo.GetMemberType()))
-                        Error.NonInvocableMember(m);
-
-                    //
-                    // A member accessed through a type is static, so it is accessed without an instance.
-                    //
-                    expression = CreateMemberAccess(expression, memberInfo);
-                    return Invoke(expression, null);
-                }
-
-                var methodInfo = Binder.BindToMethod(type ?? expression?.Type, m.Value, argumentTypes, isStatic: expression is null);
-                if (methodInfo is null)
-                    Error.CannotResolveSymbol(m.Value);
-
-                return Invoke(expression, methodInfo);
+                Error.MethodNameExpected(e.Member);
+                return null;
             }
 
-            Error.MethodNameExpected(e.Member);
-            return null;
+            var memberInfo = Binder.BindToMember(type, member.Value, isStatic: instance is null);
+            if (memberInfo is not null)
+            {
+                if (!typeof(Delegate).IsAssignableFrom(memberInfo.GetMemberType()))
+                    Error.NonInvocableMember(member);
+
+                //
+                // A member accessed through a type is static, so it is accessed without an instance.
+                //
+                return Invoke(CreateMemberAccess(instance, memberInfo), null);
+            }
+
+            var methodInfo = Binder.BindToMethod(type, member.Value, argumentTypes, isStatic: instance is null);
+            if (methodInfo is null)
+                Error.CannotResolveSymbol(member.Value);
+
+            return Invoke(instance, methodInfo);
         }
 
         Expression ProcessReference(Expr.Reference e)
@@ -356,30 +347,23 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     /// <inheritdoc />
     protected internal override Expression VisitMemberAccess(Expr.MemberAccess expr)
     {
-        var instance = expr.Expression is Expr.Reference r
-            ? ResolveSymbol(r)
-            : Visit(expr.Expression);
-
-        if (expr.Member is Expr.Reference m)
+        var (type, instance) = ResolveMemberOwner(expr.Expression);
+        if (expr.Member is not Expr.Reference member)
         {
-            var type = instance as Type;
-            var expression = instance as Expression;
-
-            Debug.Assert(type is not null || expression is not null);
-
-            var memberInfo = Binder.BindToMember(type ?? expression!.Type, m.Value, expression is null);
-
-            if (memberInfo is null)
-                Error.CannotResolveSymbol(m.Value);
-
-            if (expression?.Type.IsSZArray == true && memberInfo.DeclaringType == typeof(Array) && memberInfo.Name == nameof(Array.Length))
-                return Expression.ArrayLength(expression);
-
-            return CreateMemberAccess(expression, memberInfo);
+            Error.IdentifierExpected(expr.Member);
+            return null;
         }
 
-        Error.IdentifierExpected(expr.Member);
-        return null;
+        var memberInfo = Binder.BindToMember(type, member.Value, isStatic: instance is null);
+        if (memberInfo is null)
+            Error.CannotResolveSymbol(member.Value);
+
+        if (instance?.Type.IsSZArray == true
+            && memberInfo.DeclaringType == typeof(Array)
+            && memberInfo.Name == nameof(Array.Length))
+            return Expression.ArrayLength(instance);
+
+        return CreateMemberAccess(instance, memberInfo);
     }
 
     /// <inheritdoc />
