@@ -233,13 +233,8 @@ partial class ExpressionBuilder
     /// <returns>
     /// <see langword="true" /> if the expression is the null literal; otherwise, <see langword="false" />.
     /// </returns>
-    private static bool IsNullLiteral(Expr expr)
-    {
-        while (expr is Expr.Parenthesized parenthesized)
-            expr = parenthesized.Expression;
-
-        return expr is Expr.Literal { Value: null };
-    }
+    private static bool IsNullLiteral(Expr expr) =>
+        SkipParentheses(expr) is Expr.Literal { Value: null };
 
     /// <summary>
     /// Determines whether the specified expression is the integer literal 0, possibly in parentheses.
@@ -248,12 +243,22 @@ partial class ExpressionBuilder
     /// <returns>
     /// <see langword="true" /> if the expression is the integer literal 0; otherwise, <see langword="false" />.
     /// </returns>
-    private static bool IsZeroLiteral(Expr expr)
+    private static bool IsZeroLiteral(Expr expr) =>
+        SkipParentheses(expr) is Expr.Literal { Value: 0 or 0u or 0L or 0UL };
+
+    /// <summary>
+    /// Removes any number of enclosing parentheses from the specified expression.
+    /// </summary>
+    /// <param name="expr">The expression to unwrap.</param>
+    /// <returns>
+    /// The expression without enclosing parentheses, or <paramref name="expr" /> if it is not in parentheses.
+    /// </returns>
+    private static Expr SkipParentheses(Expr expr)
     {
         while (expr is Expr.Parenthesized parenthesized)
             expr = parenthesized.Expression;
 
-        return expr is Expr.Literal { Value: 0 or 0u or 0L or 0UL };
+        return expr;
     }
 
     /// <summary>
