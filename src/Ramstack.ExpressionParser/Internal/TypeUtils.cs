@@ -5,7 +5,7 @@ namespace Ramstack.Parsing.Internal;
 /// <summary>
 /// Provides type utility methods.
 /// </summary>
-public static class TypeUtils
+internal static class TypeUtils
 {
     private static ReadOnlySpan<Primitives> PrimitiveConversions =>
     [
