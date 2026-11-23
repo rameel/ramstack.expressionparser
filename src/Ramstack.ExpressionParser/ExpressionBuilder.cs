@@ -173,7 +173,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             Error.NonApplicableBinaryOperator(expr.Operator, lhsType, rhsType);
         }
 
-        return null!;
+        return null;
 
         static Type GetNullLiteralType(Identifier op, Type operandType) =>
             op.Name == "+" && operandType.GetNonNullableType() is { IsEnum: true } enumType
