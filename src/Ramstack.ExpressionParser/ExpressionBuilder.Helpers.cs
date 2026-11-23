@@ -281,6 +281,32 @@ partial class ExpressionBuilder
     }
 
     /// <summary>
+    /// Converts the null literal opposite an operand of a nullable value type to that type.
+    /// For the <c>+</c> operator with an operand of a nullable enum type, the literal is converted
+    /// to the nullable form of the underlying type of the enum.
+    /// </summary>
+    /// <param name="expr">The binary expression.</param>
+    /// <param name="lhs">The expression of the left operand.</param>
+    /// <param name="rhs">The expression of the right operand.</param>
+    private static void ApplyNullLiteralConversion(Expr.Binary expr, ref Expression lhs, ref Expression rhs)
+    {
+        //
+        // The null literal converts to a nullable value type, so opposite an operand of such a type
+        // it takes that type, as in 'x == null' or 'x ?? null'. For an enum type E, only E + U and U + E
+        // are defined, so in 'x + null' it takes the nullable form of the underlying type U instead.
+        //
+        if (lhs.Type.IsNullable() && IsNullLiteral(expr.Right))
+            rhs = Expression.Constant(null, GetNullLiteralType(expr.Operator, lhs.Type));
+        else if (rhs.Type.IsNullable() && IsNullLiteral(expr.Left))
+            lhs = Expression.Constant(null, GetNullLiteralType(expr.Operator, rhs.Type));
+
+        static Type GetNullLiteralType(Identifier op, Type operandType) =>
+            op.Name == "+" && operandType.GetNonNullableType() is { IsEnum: true } enumType
+                ? enumType.GetEnumUnderlyingType().MakeNullableType()
+                : operandType;
+    }
+
+    /// <summary>
     /// Converts the integer literal 0 opposite an operand of an enum type to that enum type
     /// if the operator is defined for two operands of the enum type. As in the C# compiler, a literal
     /// of the underlying type on the right of <c>-</c> is left unchanged, so <c>x - 0</c> returns
