@@ -651,80 +651,51 @@ partial class ExpressionBuilder
 
         var lhsType = lhs.Type.GetNonNullableType();
         var rhsType = rhs.Type.GetNonNullableType();
+
+        if (!TypeUtils.IsNumeric(lhsType) || !TypeUtils.IsNumeric(rhsType))
+            return;
+
+        var type = GetPromotedType(lhsType, rhsType);
+        if (type is null)
+            Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
+
         var lifted = lhs.Type.IsNullable() || rhs.Type.IsNullable();
 
-        if (!TypeUtils.IsNumeric(lhsType)
-            || !TypeUtils.IsNumeric(rhsType))
-            return;
+        lhs = ConvertOperand(lhs, type, lifted);
+        rhs = ConvertOperand(rhs, type, lifted);
 
-        var conversionTypes = new[]
+        static Type? GetPromotedType(Type x, Type y)
         {
-            typeof(decimal),
-            typeof(double),
-            typeof(float),
-            typeof(ulong),
-            typeof(long),
-            typeof(uint),
-            typeof(int)
-        };
+            if (x == typeof(decimal) || y == typeof(decimal))
+                return IsFloatingPoint(x) || IsFloatingPoint(y) ? null : typeof(decimal);
 
-        // ReSharper disable once ForCanBeConvertedToForeach
-        for (var i = 0; i < conversionTypes.Length; i++)
-        {
-            var conversionType = conversionTypes[i];
+            if (x == typeof(double) || y == typeof(double))
+                return typeof(double);
 
-            if (conversionType != typeof(int))
-                if (lhsType != conversionType && rhsType != conversionType)
-                    continue;
+            if (x == typeof(float) || y == typeof(float))
+                return typeof(float);
 
-            if (conversionType == typeof(decimal))
-            {
-                //
-                // If either operand is of type decimal, the other operand is converted to type decimal,
-                // or a compile-time error occurs if the other operand is of type float or double.
-                //
-                if (lhsType == typeof(double)
-                    || lhsType == typeof(float)
-                    || rhsType == typeof(double)
-                    || rhsType == typeof(float))
-                    Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-            }
-            else if (conversionType == typeof(ulong))
-            {
-                //
-                // If either operand is of type ulong, the other operand is converted to type ulong,
-                // or a compile-time error occurs if the other operand is of type sbyte, short, int, or long.
-                //
-                if (lhsType == typeof(sbyte)
-                    || lhsType == typeof(short)
-                    || lhsType == typeof(int)
-                    || lhsType == typeof(long)
-                    || rhsType == typeof(sbyte)
-                    || rhsType == typeof(short)
-                    || rhsType == typeof(int)
-                    || rhsType == typeof(long))
-                    Error.NonApplicableBinaryOperator(op, lhs.Type, rhs.Type);
-            }
-            else if (conversionType == typeof(uint))
-            {
-                //
-                // If either operand is of type uint and the other operand is of type sbyte, short, or int,
-                // both operands are converted to type long.
-                //
-                if (lhsType == typeof(sbyte)
-                    || lhsType == typeof(short)
-                    || lhsType == typeof(int)
-                    || rhsType == typeof(sbyte)
-                    || rhsType == typeof(short)
-                    || rhsType == typeof(int))
-                    conversionType = typeof(long);
-            }
+            if (x == typeof(ulong) || y == typeof(ulong))
+                return IsSignedInteger(x) || IsSignedInteger(y) ? null : typeof(ulong);
 
-            lhs = ConvertOperand(lhs, conversionType, lifted);
-            rhs = ConvertOperand(rhs, conversionType, lifted);
+            if (x == typeof(long) || y == typeof(long))
+                return typeof(long);
 
-            return;
+            //
+            // Neither operand is of type long here, so IsSignedInteger matches only sbyte, short, or int,
+            // as the uint rule requires.
+            //
+            if (x == typeof(uint) || y == typeof(uint))
+                return IsSignedInteger(x) || IsSignedInteger(y) ? typeof(long) : typeof(uint);
+
+            return typeof(int);
         }
+
+        static bool IsFloatingPoint(Type type) =>
+            type == typeof(float) || type == typeof(double);
+
+        static bool IsSignedInteger(Type type) =>
+            type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long);
     }
 
     private static Func<Expression, Expression, Expression> ResolveBinaryOperatorFactory(string @operator)
