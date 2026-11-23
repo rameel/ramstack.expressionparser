@@ -157,7 +157,7 @@ partial class ExpressionBuilder
         }
 
         Error.NonApplicableConditionalOperator(ifTrue.Type, ifFalse.Type);
-        return null!;
+        return null;
 
         static bool CanBeNull(Type type) =>
             !type.IsValueType || type.IsNullable();
@@ -223,7 +223,7 @@ partial class ExpressionBuilder
         }
 
         Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
-        return null!;
+        return null;
     }
 
     /// <summary>
