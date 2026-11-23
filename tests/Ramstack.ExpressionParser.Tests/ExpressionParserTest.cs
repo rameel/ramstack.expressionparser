@@ -28,8 +28,10 @@ public class ExpressionParserTest
             list.Add(["""Math.Max(1d, 15)""", 15d]);
             list.Add(["""sbyte.MinValue""", sbyte.MinValue]);
             list.Add(["""-0x80000000""", int.MinValue]);
+            list.Add(["""- 2147483648""", int.MinValue]);
             list.Add([""" 0x80000000""", 0x80000000]);
             list.Add(["""-0x8000000000000000""", long.MinValue]);
+            list.Add(["""-9223372036854775808L""", long.MinValue]);
             list.Add([""" 0x8000000000000000""", 0x8000000000000000L]);
             list.Add(["""ulong.MaxValue""", ulong.MaxValue]);
             list.Add(["""Guid.Empty""", Guid.Empty]);
@@ -447,6 +449,11 @@ public class ExpressionParserTest
     [TestCase("-4294967295u", -4294967295L)]
     [TestCase("-3000000000", -3000000000L)]
     [TestCase("-(5 :> uint)", -5L)]
+    [TestCase("-(2147483648)", -2147483648L)]
+    [TestCase("-(0x80000000)", -2147483648L)]
+    [TestCase("-2147483648u", -2147483648L)]
+    [TestCase("-0x80000000u", -2147483648L)]
+    [TestCase("-(2147483648) - 1", -2147483649L)]
     public void Evaluate_NegatedUInt32_ReturnsNegatedInt64(string expression, long expected) =>
         Assert.That(ExpressionParser.Evaluate(expression), Is.TypeOf<long>().And.EqualTo(expected));
 

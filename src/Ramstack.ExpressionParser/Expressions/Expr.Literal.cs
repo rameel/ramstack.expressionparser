@@ -15,6 +15,11 @@ partial class Expr
         public object? Value { get; } = value;
 
         /// <summary>
+        /// Gets a value indicating whether the literal is an integer literal with the <c>U</c> or <c>UL</c> suffix.
+        /// </summary>
+        internal bool HasUnsignedSuffix { get; init; }
+
+        /// <summary>
         /// Deconstructs the literal expression into its value.
         /// </summary>
         /// <param name="value">The constant value of the literal, which may be <see langword="null" />.</param>

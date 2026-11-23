@@ -421,10 +421,15 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         switch (expr.UnaryType, operand)
         {
-            case (UnaryType.Negate, ConstantExpression { Value: 0x80000000u }):
+            //
+            // As in C#, the literals 2147483648 and 9223372036854775808 directly after a unary minus are the constants
+            // int.MinValue and long.MinValue. Parentheses or the U suffix keep their uint and ulong types.
+            // Other suffixes need no check: 2147483648 with L or UL is not a uint, and C# allows L for 9223372036854775808.
+            //
+            case (UnaryType.Negate, _) when expr.Operand is Expr.Literal { Value: 0x80000000u, HasUnsignedSuffix: false }:
                 return Expression.Constant(int.MinValue);
 
-            case (UnaryType.Negate, ConstantExpression { Value: 0x8000000000000000ul }):
+            case (UnaryType.Negate, _) when expr.Operand is Expr.Literal { Value: 0x8000000000000000ul, HasUnsignedSuffix: false }:
                 return Expression.Constant(long.MinValue);
 
             //

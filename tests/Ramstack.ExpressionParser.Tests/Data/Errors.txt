@@ -137,6 +137,21 @@ Operator '+' cannot be applied to operands of type 'System.UInt64' and 'System.I
 -1ul
 Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
 
+-(9223372036854775808)
+Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
+
+-(0x8000000000000000)
+Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
+
+-9223372036854775808u
+Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
+
+-9223372036854775808ul
+Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
+
+-0x8000000000000000ul
+Unary operator '-' cannot be applied to operand of type 'System.UInt64'.
+
 -DayOfWeek.Friday
 Unary operator '-' cannot be applied to operand of type 'System.DayOfWeek'.
 

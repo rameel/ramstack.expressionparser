@@ -62,9 +62,7 @@ partial class ExpressionParser
             ).Void();
 
         var number_literal =
-            ConstantNumberParser
-                .NumericLiteral
-                .Do(Expr (v) => new Expr.Literal(v));
+            ConstantNumberParser.NumericLiteral;
 
         var string_literal =
             Literal
