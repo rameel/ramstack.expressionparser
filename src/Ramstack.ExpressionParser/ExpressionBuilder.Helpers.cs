@@ -9,11 +9,11 @@ partial class ExpressionBuilder
 {
     private object ResolveSymbol(Expr.Reference expr)
     {
-        var expression = TryResolveSymbol(expr);
-        if (expression is null)
+        var symbol = TryResolveSymbol(expr);
+        if (symbol is null)
             Error.CannotResolveSymbol(expr.Value);
 
-        return expression;
+        return symbol;
     }
 
     private object? TryResolveSymbol(Expr.Reference expr)
@@ -29,9 +29,7 @@ partial class ExpressionBuilder
             return null;
 
         var context = member.IsStatic() ? null : Binder.Context;
-
         Debug.Assert(context is not null || member.IsStatic());
-        Debug.Assert(context is null || !member.IsStatic());
 
         return CreateMemberAccess(context, member);
     }
