@@ -276,23 +276,8 @@ partial class ExpressionBuilder
         //
         // Of such constant expressions, only the integer literal 0 is recognized.
         //
-        switch (expr.Operator.Name)
-        {
-            case "-":
-            case "&":
-            case "|":
-            case "^":
-            case "==":
-            case "!=":
-            case "<":
-            case ">":
-            case "<=":
-            case ">=":
-                break;
-
-            default:
-                return;
-        }
+        if (expr.Operator.Name is not ("-" or "&" or "|" or "^" or "==" or "!=" or "<" or ">" or "<=" or ">="))
+            return;
 
         var lhsType = lhs.Type.GetNonNullableType();
         var rhsType = rhs.Type.GetNonNullableType();
