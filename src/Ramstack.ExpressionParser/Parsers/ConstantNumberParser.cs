@@ -7,12 +7,12 @@ namespace Ramstack.Parsing.Parsers;
 /// <remarks>
 /// This parser matches only the number itself; a leading sign is parsed as a unary operator.
 /// </remarks>
-internal sealed class ConstantNumberParser : Parser<object>
+internal sealed class ConstantNumberParser : Parser<Expr>
 {
     /// <summary>
     /// Gets the numeric literal parser.
     /// </summary>
-    public static Parser<object> NumericLiteral { get; } = new ConstantNumberParser();
+    public static Parser<Expr> NumericLiteral { get; } = new ConstantNumberParser();
 
     /// <summary>
     /// A lookup table for converting hexadecimal characters to their corresponding
@@ -41,7 +41,7 @@ internal sealed class ConstantNumberParser : Parser<object>
     ];
 
     /// <inheritdoc />
-    public override bool TryParse(ref ParseContext context, [NotNullWhen(true)] out object? value)
+    public override bool TryParse(ref ParseContext context, [NotNullWhen(true)] out Expr? value)
     {
         var s = context.Remaining;
         if (s.Length == 0)
@@ -60,7 +60,7 @@ internal sealed class ConstantNumberParser : Parser<object>
                 var p = TryParseReal(s, count, out var real);
                 if (p != 0)
                 {
-                    value = real!;
+                    value = new Expr.Literal(real);
                     context.Advance(p);
                     return true;
                 }
@@ -70,7 +70,8 @@ internal sealed class ConstantNumberParser : Parser<object>
             }
         }
 
-        count += AdjustNumericType(s[count..], number, out value);
+        count += AdjustNumericType(s[count..], number, out var constant, out var hasUnsignedSuffix);
+        value = new Expr.Literal(constant) { HasUnsignedSuffix = hasUnsignedSuffix };
         context.Advance(count);
         return true;
 
@@ -303,7 +304,7 @@ internal sealed class ConstantNumberParser : Parser<object>
         }
     }
 
-    private static int AdjustNumericType(ReadOnlySpan<char> s, ulong number, out object value)
+    private static int AdjustNumericType(ReadOnlySpan<char> s, ulong number, out object value, out bool hasUnsignedSuffix)
     {
         var hasL = false;
         var hasU = false;
@@ -338,6 +339,8 @@ internal sealed class ConstantNumberParser : Parser<object>
             }
         }
 
+        hasUnsignedSuffix = hasU;
+
         //
         // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#6453-integer-literals
         //
@@ -352,7 +355,8 @@ internal sealed class ConstantNumberParser : Parser<object>
         //
 
         //
-        // Note: The following part of the spec is not implemented here. It is implemented in the unary minus analysis.
+        // Note: The following part of the spec is not implemented here. It is implemented in the unary minus analysis
+        // (ExpressionBuilder.VisitUnary), which uses Expr.Literal.HasUnsignedSuffix to tell these literals apart.
         // The current parser matches only the number itself, since the unary sign (in this case, minus) is intercepted
         // by the parser responsible for unary operations.
         //
