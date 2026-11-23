@@ -327,6 +327,25 @@ partial class ExpressionBuilder
         return ApplyImplicitConversion(expression, conversionType);
     }
 
+    /// <summary>
+    /// Returns the types of the specified arguments.
+    /// </summary>
+    /// <param name="arguments">The expressions of the arguments.</param>
+    /// <returns>
+    /// An array that contains the types of <paramref name="arguments" /> in the same order.
+    /// </returns>
+    private static Type[] GetArgumentTypes(IReadOnlyList<Expression> arguments)
+    {
+        if (arguments.Count == 0)
+            return [];
+
+        var types = new Type[arguments.Count];
+        for (var i = 0; i < types.Length; i++)
+            types[i] = arguments[i].Type;
+
+        return types;
+    }
+
     private static List<Expression> CreateInjectingArguments(MethodInfo method, IReadOnlyList<Expression> args)
     {
         var parameters = method.GetParameters();

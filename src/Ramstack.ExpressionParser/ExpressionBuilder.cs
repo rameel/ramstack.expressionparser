@@ -184,13 +184,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     protected internal override Expression VisitIndex(Expr.Indexer expr)
     {
         var self = Visit(expr.Expression);
-        var parameters = Visit(expr.Parameters).ToArray();
-        var parameterTypes = parameters.Length != 0
-            ? new Type[parameters.Length]
-            : [];
-
-        for (var i = 0; i < parameterTypes.Length; i++)
-            parameterTypes[i] = parameters[i].Type;
+        var arguments = Visit(expr.Parameters).ToArray();
+        var argumentTypes = GetArgumentTypes(arguments);
 
         try
         {
@@ -205,19 +200,19 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         Expression ProcessArray()
         {
-            for (var i = 0; i < parameterTypes.Length; i++)
+            for (var i = 0; i < argumentTypes.Length; i++)
             {
-                var argumentType = parameterTypes[i];
+                var argumentType = argumentTypes[i];
                 if (argumentType != typeof(int))
                 {
                     if (!TypeUtils.CanConvertPrimitive(argumentType, typeof(int)) && TypeUtils.FindConversionOperator(argumentType, typeof(int)) is null)
                         Error.MissingImplicitConversion(argumentType, typeof(int));
 
-                    parameters[i] = Expression.Convert(parameters[i], typeof(int));
+                    arguments[i] = Expression.Convert(arguments[i], typeof(int));
                 }
             }
 
-            return Expression.ArrayAccess(self, parameters);
+            return Expression.ArrayAccess(self, arguments);
         }
 
         Expression ProcessIndex()
@@ -238,7 +233,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (methods.Count == 0)
                 Error.NonIndexingType(self.Type);
 
-            var method = (MethodInfo?)MethodResolver.ResolveMethod(methods, parameterTypes);
+            var method = (MethodInfo?)MethodResolver.ResolveMethod(methods, argumentTypes);
             if (method is null)
                 Error.AmbiguousMatch(indexers);
 
@@ -249,7 +244,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (!method.IsPublic)
                 Error.InaccessibleGetAccessor(indexers[methods.IndexOf(method)]);
 
-            var injectingArguments = CreateInjectingArguments(method, parameters);
+            var injectingArguments = CreateInjectingArguments(method, arguments);
             return Expression.Call(self, method, injectingArguments);
         }
     }
@@ -258,12 +253,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     protected internal override Expression VisitCall(Expr.Call expr)
     {
         var arguments = Visit(expr.Parameters);
-        var argumentTypes = arguments.Count != 0
-            ? new Type[arguments.Count]
-            : [];
-
-        for (var i = 0; i < argumentTypes.Length; i++)
-            argumentTypes[i] = arguments[i].Type;
+        var argumentTypes = GetArgumentTypes(arguments);
 
         switch (expr.Expression)
         {
