@@ -452,6 +452,9 @@ partial class ExpressionBuilder
 
     private static Expression ApplyBinaryExpression(Identifier op, Func<Expression, Expression, Expression> apply, Expression lhs, Expression rhs)
     {
+        if (op.Name is ">>" or ">>>" or "<<")
+            return ApplyShiftOperator(op, apply, lhs, rhs);
+
         //
         // 12.4.8 Lifted operators
         // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#1248-lifted-operators
@@ -531,36 +534,6 @@ partial class ExpressionBuilder
             if (rhsNonNullableType.IsEnum)
                 rhs = ConvertOperand(rhs, enumUnderlyingType, lifted);
         }
-        else if (op.Name is ">>" or ">>>" or "<<")
-        {
-            //
-            // The predefined shift operators take an int, uint, long, or ulong value and an int count,
-            // so an operand of a smaller integral type, including char, is converted to int, as in C#.
-            //
-            lhs = ApplyUnaryNumericPromotion(lhs);
-            rhs = ApplyUnaryNumericPromotion(rhs);
-
-            var shiftType = lhs.Type.GetNonNullableType();
-            if (!TypeUtils.IsInteger(shiftType) || rhs.Type.GetNonNullableType() != typeof(int))
-                Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
-
-            if (op.Name == ">>>")
-            {
-                if (shiftType == typeof(int))
-                    return ConvertOperand(
-                        apply(ConvertOperand(lhs, typeof(uint), lifted), rhs),
-                        typeof(int),
-                        lifted);
-
-                if (shiftType == typeof(long))
-                    return ConvertOperand(
-                        apply(ConvertOperand(lhs, typeof(ulong), lifted), rhs),
-                        typeof(long),
-                        lifted);
-            }
-
-            return apply(lhs, rhs);
-        }
 
         ApplyBinaryNumericPromotions(op, ref lhs, ref rhs);
 
@@ -582,6 +555,41 @@ partial class ExpressionBuilder
         return enumResultType is not null
             ? ConvertOperand(result, enumResultType, lifted)
             : result;
+    }
+
+    private static Expression ApplyShiftOperator(Identifier op, Func<Expression, Expression, Expression> apply, Expression lhs, Expression rhs)
+    {
+        //
+        // The predefined shift operators take an int, uint, long, or ulong value and an int count,
+        // so an operand of a smaller integral type, including char, is converted to int, as in C#.
+        //
+        var lhsType = lhs.Type;
+        var rhsType = rhs.Type;
+        var lifted = lhsType.IsNullable() || rhsType.IsNullable();
+
+        lhs = ApplyUnaryNumericPromotion(lhs);
+        rhs = ApplyUnaryNumericPromotion(rhs);
+
+        var shiftType = lhs.Type.GetNonNullableType();
+        if (!TypeUtils.IsInteger(shiftType) || rhs.Type.GetNonNullableType() != typeof(int))
+            Error.NonApplicableBinaryOperator(op, lhsType, rhsType);
+
+        if (op.Name == ">>>")
+        {
+            if (shiftType == typeof(int))
+                return ConvertOperand(
+                    apply(ConvertOperand(lhs, typeof(uint), lifted), rhs),
+                    typeof(int),
+                    lifted);
+
+            if (shiftType == typeof(long))
+                return ConvertOperand(
+                    apply(ConvertOperand(lhs, typeof(ulong), lifted), rhs),
+                    typeof(long),
+                    lifted);
+        }
+
+        return apply(lhs, rhs);
     }
 
     /// <summary>
