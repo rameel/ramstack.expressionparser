@@ -14,12 +14,11 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     /// <summary>
     /// The overloads of the <c>string.Concat</c> method that the <c>+</c> operator with a string operand is bound to.
     /// </summary>
-    private static readonly MethodBase[] s_concatMethods = typeof(string)
+    private static readonly MethodInfo[] s_concatMethods = typeof(string)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Where(m =>
             m.Name == nameof(string.Concat)
             && (m.CallingConvention & CallingConventions.VarArgs) == 0)
-        .Cast<MethodBase>()
         .ToArray();
 
     /// <summary>
@@ -239,7 +238,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (methods.Count == 0)
                 Error.NonIndexingType(self.Type);
 
-            var method = (MethodInfo?)MethodResolver.ResolveMethod(methods.ToArray(), parameterTypes);
+            var method = (MethodInfo?)MethodResolver.ResolveMethod(methods, parameterTypes);
             if (method is null)
                 Error.AmbiguousMatch(indexers);
 
