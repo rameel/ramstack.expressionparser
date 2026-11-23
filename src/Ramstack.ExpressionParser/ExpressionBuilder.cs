@@ -265,14 +265,18 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
         for (var i = 0; i < argumentTypes.Length; i++)
             argumentTypes[i] = arguments[i].Type;
 
-        if (expr.Expression.Kind == ExprKind.MemberAccess)
-            return ProcessMemberAccess((Expr.MemberAccess)expr.Expression);
+        switch (expr.Expression)
+        {
+            case Expr.MemberAccess memberAccess:
+                return ProcessMemberAccess(memberAccess);
 
-        if (expr.Expression.Kind == ExprKind.Reference)
-            return ProcessReference((Expr.Reference)expr.Expression);
+            case Expr.Reference reference:
+                return ProcessReference(reference);
 
-        Error.MethodNameExpected(expr.Expression);
-        return null;
+            default:
+                Error.MethodNameExpected(expr.Expression);
+                return null;
+        }
 
         Expression Invoke(Expression? instance, MethodInfo? method)
         {
@@ -314,7 +318,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                 var type = instance as Type;
                 var expression = instance as Expression;
 
-                var memberInfo = Binder.BindToMember(type ?? expression?.Type, m.Value, expression is null);
+                var memberInfo = Binder.BindToMember(type ?? expression?.Type, m.Value, isStatic: expression is null);
                 if (memberInfo is not null)
                 {
                     if (!typeof(Delegate).IsAssignableFrom(memberInfo.GetMemberType()))
@@ -327,7 +331,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                     return Invoke(expression, null);
                 }
 
-                var methodInfo = Binder.BindToMethod(type ?? expression?.Type, m.Value, argumentTypes, expression is null);
+                var methodInfo = Binder.BindToMethod(type ?? expression?.Type, m.Value, argumentTypes, isStatic: expression is null);
                 if (methodInfo is null)
                     Error.CannotResolveSymbol(m.Value);
 
@@ -340,23 +344,17 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         Expression ProcessReference(Expr.Reference e)
         {
-            var symbol = TryResolveSymbol(e);
-            var type = symbol as Type;
-
-            Debug.Assert(symbol is null or Type or Expression);
-
-            if (symbol is Expression expression)
+            switch (TryResolveSymbol(e))
             {
-                if (!typeof(Delegate).IsAssignableFrom(expression.Type))
-                    Error.NonInvocableMember(e);
+                case Expression expression when typeof(Delegate).IsAssignableFrom(expression.Type):
+                    return Invoke(expression, null);
 
-                return Invoke(expression, null);
+                case Expression or Type:
+                    Error.NonInvocableMember(e);
+                    break;
             }
 
-            if (type is not null)
-                Error.NonInvocableMember(e);
-
-            var methodInfo = Binder.BindToMethod(null, e.Value, argumentTypes, true);
+            var methodInfo = Binder.BindToMethod(null, e.Value, argumentTypes, isStatic: true);
             if (methodInfo is null)
                 Error.CannotResolveSymbol(e.Value);
 
