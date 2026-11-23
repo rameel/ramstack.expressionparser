@@ -242,6 +242,9 @@ Operator '==' cannot be applied to operands of type 'System.DayOfWeek' and 'Syst
 true ? 1.0 : 2m
 Operator '?:' cannot be applied to operands of type 'System.Double' and 'System.Decimal'.
 
+true ? 1.0f : 2m
+Operator '?:' cannot be applied to operands of type 'System.Single' and 'System.Decimal'.
+
 true ? 1 : 1ul
 Operator '?:' cannot be applied to operands of type 'System.Int32' and 'System.UInt64'.
 

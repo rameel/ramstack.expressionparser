@@ -540,6 +540,30 @@ IIF(True, Convert(1, Double), 2)
 false ? 1 : 2m
 IIF(False, Convert(1, Decimal), 2)
 
+false ? 'a' : 2m
+IIF(False, Convert(a, Decimal), 2)
+
+false ? 1 :> sbyte : 2m
+IIF(False, Convert(Convert(1, SByte), Decimal), 2)
+
+false ? 1 :> byte : 2m
+IIF(False, Convert(Convert(1, Byte), Decimal), 2)
+
+false ? 1 :> short : 2m
+IIF(False, Convert(Convert(1, Int16), Decimal), 2)
+
+false ? 1 :> ushort : 2m
+IIF(False, Convert(Convert(1, UInt16), Decimal), 2)
+
+false ? 1u : 2m
+IIF(False, Convert(1, Decimal), 2)
+
+false ? 1L : 2m
+IIF(False, Convert(1, Decimal), 2)
+
+false ? 1ul : 2m
+IIF(False, Convert(1, Decimal), 2)
+
 true ? 'a' : 1
 IIF(True, Convert(a, Int32), 1)
 
