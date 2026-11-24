@@ -142,10 +142,16 @@ partial class ExpressionParser
                     Seq(L(']'), S))
                 .Do(Func<Expr, Expr> (parameters) => expr => new Expr.Indexer(expr, parameters));
 
+        //
+        // Not(keyword) reports no expected token when it fails, so the member name is labeled
+        // to report "Expected identifier" for a keyword after the dot. Unlike Fail, a labeled parser
+        // fails without stopping the parse, so Subparser still stops before a dot that an enclosing
+        // grammar uses, as in 'a..b'.
+        //
         var member_access =
-            identifier
+            Not(keyword).Then(identifier).As("identifier")
                 .Between(
-                    Seq(L('.'), S, Not(keyword)),
+                    Seq(L('.'), S),
                     S)
                 .Do(Func<Expr, Expr> (name) => expr => new Expr.MemberAccess(expr, new Expr.Reference(name)));
 

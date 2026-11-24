@@ -850,6 +850,18 @@ public class ExpressionParserTest
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
+    [TestCase("a..b", "a", "..b")]
+    [TestCase("1..5", "1", "..5")]
+    [TestCase("x.y..z", "x.y", "..z")]
+    public void Subparser_DotWithoutMember_StopsBeforeDot(string source, string expected, string rest)
+    {
+        var result = ExpressionParser.Subparser.Parse(source);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Value!.ToString(), Is.EqualTo(expected));
+        Assert.That(source[result.Length..], Is.EqualTo(rest));
+    }
+
     [Test]
     public void MaxDepthTest()
     {
