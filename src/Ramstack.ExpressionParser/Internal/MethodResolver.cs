@@ -92,26 +92,25 @@ internal static class MethodResolver
                 // Excess provided parameters
 
                 // Test for the ParamArray case
-                var lastParameterIndex = parameters.Length - 1;
+                var lastParameter = parameters[^1];
+                var lastParameterType = lastParameter.ParameterType;
 
-                if (!parameters[lastParameterIndex].ParameterType.IsArray)
+                if (!lastParameterType.IsArray
+                    || !lastParameter.IsDefined(typeof(ParamArrayAttribute), true))
                     continue;
 
-                if (!parameters[lastParameterIndex].IsDefined(typeof(ParamArrayAttribute), true))
-                    continue;
-
-                paramArrayType = parameters[lastParameterIndex].ParameterType.GetElementType();
+                paramArrayType = lastParameterType.GetElementType();
             }
             else
             {
                 // Test for paramArray, save paramArray type
-                var lastParameterIndex = parameters.Length - 1;
-                var lastParameterType = parameters[lastParameterIndex].ParameterType;
+                var lastParameter = parameters[^1];
+                var lastParameterType = lastParameter.ParameterType;
 
-                if (lastParameterType.IsArray)
-                    if (parameters[lastParameterIndex].IsDefined(typeof(ParamArrayAttribute), true))
-                        if (!lastParameterType.IsAssignableFrom(argumentTypes[lastParameterIndex]))
-                            paramArrayType = lastParameterType.GetElementType();
+                if (lastParameterType.IsArray
+                    && lastParameter.IsDefined(typeof(ParamArrayAttribute), true)
+                    && !lastParameterType.IsAssignableFrom(argumentTypes[^1]))
+                    paramArrayType = lastParameterType.GetElementType();
             }
 
             var argumentsToCheck = paramArrayType is null ? argumentTypes.Length : parameters.Length - 1;
