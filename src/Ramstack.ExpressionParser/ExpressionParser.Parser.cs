@@ -141,8 +141,12 @@ partial class ExpressionParser
                     Seq(L(')'), S))
                 .Do(Func<Expr, Expr> (parameters) => expr => new Expr.Call(expr, parameters));
 
+        // Unlike a call, an indexer takes at least one argument, as in C#.
         var indexer =
-            expression_list
+            expression
+                .Separated(
+                    Seq(L(','), S),
+                    min: 1).As("expression")
                 .Between(
                     Seq(L('['), S),
                     Seq(L(']'), S))

@@ -68,7 +68,7 @@ Method name expected (expression: 3).
 Cannot apply indexing with [] to an expression of type 'System.Int32'.
 
 1 + 2 * 3[
-(1:11) Expected ']'
+(1:11) Expected expression
 
 1 + 2 * 3]
 (1:10) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
@@ -101,7 +101,13 @@ Cannot apply indexing with [] to an expression of type 'System.Int32'.
 (1:2) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
 "test"[]
-Ambiguous match found:\n    Char Chars [Int32] (in System.String)
+(1:8) Expected expression
+
+"test"[ ]
+(1:9) Expected expression
+
+"test".Split(',')[]
+(1:19) Expected expression
 
 "test"["a"]
 Ambiguous match found:\n    Char Chars [Int32] (in System.String)
