@@ -130,7 +130,7 @@ partial class ExpressionParser
         var expression_list =
             expression
                 .Separated(
-                    Seq(L(','), S)).As("expression_list");
+                    Seq(L(','), S));
 
         // Member access, calls, and indexers share one precedence level, so each of them
         // is parsed as a postfix operator that wraps the expression to its left.
@@ -146,7 +146,7 @@ partial class ExpressionParser
             expression
                 .Separated(
                     Seq(L(','), S),
-                    min: 1).As("expression")
+                    min: 1)
                 .Between(
                     Seq(L('['), S),
                     Seq(L(']'), S))
