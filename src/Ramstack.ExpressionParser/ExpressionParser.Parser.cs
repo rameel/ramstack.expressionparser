@@ -49,11 +49,21 @@ partial class ExpressionParser
                 Character.LetterOrDigit,
                 L('_')).Void();
 
-        var identifier =
+        var identifier_name =
             Seq(
                 identifier_start,
                 identifier_body.Many()
-                ).Map(m => new Identifier(m.ToString())).As("identifier");
+                ).Map(m => new Identifier(m.ToString()));
+
+        //
+        // As in C#, the '@' prefix makes a verbatim identifier, which can be a keyword, as in 'x.@null'.
+        // The prefix is not part of the name. The keyword check does not match the prefix, so a verbatim
+        // identifier passes Not(keyword) wherever an identifier is expected.
+        //
+        var identifier =
+            L('@').Optional()
+                .Then(identifier_name)
+                .As("identifier");
 
         var keyword =
             Seq(

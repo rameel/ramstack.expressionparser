@@ -35,6 +35,9 @@ If the expression is invalid, `Success` is `false`, and `ErrorMessage` describes
 Identifiers are resolved in a case-insensitive manner, so `math.min`, `Math.Min`, and `MATH.MIN`
 refer to the same method.
 
+`true`, `false`, and `null` are keywords. As in C#, prefix a name with `@` to use it as an identifier,
+for example `item.@null` for a member named `null`.
+
 ### Evaluating expressions
 
 `Evaluate` parses, compiles, and runs an expression in a single call:
