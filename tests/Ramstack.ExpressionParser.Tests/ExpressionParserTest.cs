@@ -769,6 +769,7 @@ public class ExpressionParserTest
     [TestCase("+NullableDay", "Unary operator '+' cannot be applied to operand of type 'System.Nullable`1[System.DayOfWeek]'.")]
     [TestCase("-NullableULong", "Unary operator '-' cannot be applied to operand of type 'System.Nullable`1[System.UInt64]'.")]
     [TestCase("NullBool && true", "Cannot implicitly convert type 'System.Nullable`1[System.Boolean]' to 'System.Boolean'.")]
+    [TestCase("null && NullBool", "Cannot implicitly convert type 'System.Nullable`1[System.Boolean]' to 'System.Boolean'.")]
     [TestCase("Flag ? NullableInt : 1L", "Operator '?:' cannot be applied to operands of type 'System.Nullable`1[System.Int32]' and 'System.Int64'.")]
     public void Parse_NullableOperandsWithoutOperatorInCSharp_ReturnsError(string expression, string expected)
     {

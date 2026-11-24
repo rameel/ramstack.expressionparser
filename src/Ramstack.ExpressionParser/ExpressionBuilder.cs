@@ -67,21 +67,11 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
         ApplyNullLiteralConversion(expr, ref lhs, ref rhs);
         ApplyEnumZeroConversion(expr, ref lhs, ref rhs);
 
-        var factory = ResolveBinaryOperatorFactory(expr.Operator.Name);
-
         switch (expr.Operator.Name)
         {
-            case "&&":
-            case "||":
-                lhs = ApplyImplicitConversion(lhs, typeof(bool));
-                rhs = ApplyImplicitConversion(rhs, typeof(bool));
-
-                if (lhs is null)
-                    Error.MissingImplicitConversion(lhsType, typeof(bool));
-
-                if (rhs is null)
-                    Error.MissingImplicitConversion(rhsType, typeof(bool));
-
+            case "&&" or "||":
+                lhs = ApplyBooleanConversion(lhs);
+                rhs = ApplyBooleanConversion(rhs);
                 break;
 
             case "??":
@@ -90,6 +80,10 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             case "+" when lhsType == typeof(string) || rhsType == typeof(string):
                 return ApplyStringConcatenation(lhs, rhs);
         }
+
+        // The factory is resolved outside the try block, so that an unknown operator fails with NotSupportedException
+        // rather than being reported as an operator that cannot be applied to its operands.
+        var factory = ResolveBinaryOperatorFactory(expr.Operator.Name);
 
         try
         {
@@ -394,10 +388,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         try
         {
-            var condition = ApplyImplicitConversion(test, typeof(bool));
-            if (condition is null)
-                Error.MissingImplicitConversion(test.Type, typeof(bool));
-
+            var condition = ApplyBooleanConversion(test);
             var type = ApplyConditionalConversions(expr, ref ifTrue, ref ifFalse);
             return Expression.Condition(condition, ifTrue, ifFalse, type);
         }
