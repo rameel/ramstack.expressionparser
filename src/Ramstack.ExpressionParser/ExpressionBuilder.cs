@@ -87,69 +87,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             case "??":
                 return ApplyNullCoalescing(expr.Operator, lhs, rhs);
 
-            case "+":
-                if (lhsType != typeof(string) && rhsType != typeof(string))
-                    break;
-
-                var arguments = new List<Expression>();
-                var argumentTypes = new List<Type>();
-
-                Flatten(lhs);
-                Flatten(rhs);
-
-                if (argumentTypes.Any(t => t != typeof(string)))
-                {
-                    for (var i = 0; i < arguments.Count; i++)
-                    {
-                        argumentTypes[i] = typeof(object);
-                        if (arguments[i].Type.IsValueType)
-                            arguments[i] = Expression.Convert(arguments[i], typeof(object));
-                    }
-                }
-
-                var cmi = (MethodInfo?)MethodResolver.ResolveMethod(s_concatMethods, argumentTypes.ToArray())!;
-                Debug.Assert(cmi is not null);
-
-                var args = CreateInjectingArguments(cmi, arguments);
-                return Expression.Call(null, cmi, args);
-
-                void Flatten(Expression e)
-                {
-                    if (e is MethodCallExpression call
-                        && call.Method.Name == nameof(string.Concat)
-                        && call.Method.DeclaringType == typeof(string))
-                    {
-                        var list = call.Arguments;
-                        if (list.Count != 1)
-                        {
-                            foreach (var item in list)
-                            {
-                                arguments.Add(item);
-                                argumentTypes.Add(item.Type);
-                            }
-                        }
-                        else if (list[0] is NewArrayExpression { NodeType: ExpressionType.NewArrayInit } array)
-                        {
-                            foreach (var item in array.Expressions)
-                            {
-                                arguments.Add(item);
-                                argumentTypes.Add(item.Type);
-                            }
-                        }
-                        else
-                        {
-                            // The only argument is not an array of operands created for the expanded form,
-                            // as in string.Concat(value) or string.Concat(array), so the call itself is the operand.
-                            arguments.Add(e);
-                            argumentTypes.Add(e.Type);
-                        }
-                    }
-                    else
-                    {
-                        arguments.Add(e);
-                        argumentTypes.Add(e.Type);
-                    }
-                }
+            case "+" when lhsType == typeof(string) || rhsType == typeof(string):
+                return ApplyStringConcatenation(lhs, rhs);
         }
 
         try
