@@ -10,6 +10,9 @@ public sealed class Identifier(string name)
     /// <summary>
     /// Gets the name of the identifier or the symbol of the operator.
     /// </summary>
+    /// <remarks>
+    /// The name of a verbatim identifier, such as <c>@null</c>, does not include the <c>@</c> prefix.
+    /// </remarks>
     public string Name { get; } = name;
 
     /// <summary>
