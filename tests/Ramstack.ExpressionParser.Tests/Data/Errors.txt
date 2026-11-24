@@ -14,16 +14,19 @@ string.Empty:>text
 Cannot resolve symbol 'text'.
 
 single.10:>text
-Identifier expected (expression: 10).
+(1:8) Expected identifier
 
 float."10":>text
-Identifier expected (expression: "10").
+(1:7) Expected identifier
+
+"abc".(Length)
+(1:7) Expected identifier
 
 int.true:>text
-(1:4) Expected '(', '[', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+(1:5) Expected identifier
 
 double.false:>text
-(1:7) Expected '(', '[', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
+(1:8) Expected identifier
 
 Math.int:>text
 Cannot resolve symbol 'int'.
