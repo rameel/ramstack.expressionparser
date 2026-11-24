@@ -180,9 +180,7 @@ public class ExpressionParserTest
     [Test]
     public void Evaluate_DateTimeToday_ReturnsCurrentDate()
     {
-        //
         // The date can change during evaluation, so the result is compared with the dates before and after it.
-        //
         var before = DateTime.Today;
         var result = ExpressionParser.Evaluate("DateTime.Today");
         var after = DateTime.Today;
@@ -473,9 +471,7 @@ public class ExpressionParserTest
     {
         get
         {
-            //
             // The integer part does not fit in ulong.
-            //
             yield return new("100000000000000000000.0", 1e20);
             yield return new("100000000000000000000e0", 1e20);
             yield return new("100000000000000000000d", 1e20);
@@ -484,9 +480,7 @@ public class ExpressionParserTest
             yield return new("79228162514264337593543950335m", decimal.MaxValue);
             yield return new("18446744073709551616.5", 18446744073709551616.5);
 
-            //
             // As in C#, a value too small for the type becomes zero.
-            //
             yield return new("1e-400", 0d);
             yield return new("1e-50f", 0f);
             yield return new("1e-100m", 0m);
@@ -884,9 +878,7 @@ public class ExpressionParserTest
     [Test]
     public void MaxDepthTest()
     {
-        //
         // The literal is the first level, and each operator adds one more level.
-        //
         Assert.That(ExpressionParser.Parse(new string('-', 255) + "1").Success, Is.True);
         Assert.That(ExpressionParser.Parse(new string('-', 256) + "1").ToString(),
             Is.EqualTo("(1:258) The expression exceeds the maximum depth of 256."));
@@ -916,10 +908,8 @@ public class ExpressionParserTest
     [TestCaseSource(nameof(StackBudgetSource))]
     public void StackBudgetTest(string expression)
     {
-        //
         // The default stack of a thread on Windows is 1 MB, so the expressions at the maximum depth
         // and moderately nested parentheses must be parsed and built on such a stack.
-        //
         var result = RunOnThread(1024 * 1024, () => ExpressionParser.Parse(expression, new DefaultBinder()));
         Assert.That(result.Success, Is.True, result.ErrorMessage);
     }
@@ -927,9 +917,7 @@ public class ExpressionParserTest
     [Test]
     public void DeepTreeBuildTest()
     {
-        //
         // The parser does not produce such a tree, but the tree can be created directly.
-        //
         Expr expr = new Expr.Literal(1);
         for (var i = 0; i < 100_000; i++)
             expr = new Expr.Unary(new Identifier("-"), UnaryType.Negate, expr);
@@ -981,9 +969,7 @@ public class ExpressionParserTest
     {
         get
         {
-            //
             // The parser wraps such operands in Expr.Parenthesized, but a tree can be built without it.
-            //
             var conditional = new Expr.Conditional(Reference("a"), Reference("b"), Reference("c"));
             var conversion = new Expr.Unary(new Identifier("object"), UnaryType.Convert, Reference("x"));
 
@@ -1018,9 +1004,7 @@ public class ExpressionParserTest
         Assert.That(result.Success, Is.True, result.ErrorMessage);
         Assert.That(result.Value!.Type, Is.EqualTo(type));
 
-        //
         // Boxing loses the nullable type, so the type of the value is checked separately from the type of the expression.
-        //
         var body = Expression.Convert(result.Value, typeof(object));
         var value = Expression.Lambda<Func<TContext, object?>>(body, parameter).Compile()(context);
 
@@ -1109,10 +1093,8 @@ public class ExpressionParserTest
         string Pick(int value);
         string Describe();
 
-        //
         // Declaring ToString in the interface makes the call 'Derived.ToString()' choose between
         // this method and Object.ToString, which have the same signature.
-        //
         string ToString();
 
         static string Create() => "IBaseInterface.Create";
@@ -1132,10 +1114,8 @@ public class ExpressionParserTest
         string Pick(T value);
     }
 
-    //
     // IConsumer<string> is assignable from IConsumer<object> by contravariance,
     // but neither is a base interface of the other.
-    //
     public interface IBothConsumers : IConsumer<object>, IConsumer<string>;
 
     public class BothConsumers : IBothConsumers
@@ -1149,10 +1129,8 @@ public class ExpressionParserTest
         T Value { get; }
     }
 
-    //
     // IProducer<object> is assignable from IProducer<string> by covariance,
     // but neither is a base interface of the other.
-    //
     public interface IBothProducers : IProducer<object>, IProducer<string>;
 
     public class InterfaceImplementation : IDerivedInterface
@@ -1218,18 +1196,14 @@ public class ExpressionParserTest
 
         public string Pick(long value) => "DerivedOverloads.Pick(long)";
 
-        //
         // In C#, an override belongs to the class that introduced the method,
         // so the overload declared here hides it.
-        //
         public override string Overridden(int value) => "DerivedOverloads.Overridden(int)";
         public string Overridden(long value) => "DerivedOverloads.Overridden(long)";
         public string Optional(int value = 0) => "DerivedOverloads.Optional(int)";
 
-        //
         // A covariant return override also belongs to the base class, so it does not hide
         // Covariant(int), although reflection reports it as a new method of this class.
-        //
         public override string Covariant(long value) => "DerivedOverloads.Covariant(long)";
 
         public static string Create(long value) => "DerivedOverloads.Create(long)";
@@ -1240,26 +1214,20 @@ public class ExpressionParserTest
         static string Create(int value) => "IStaticOverloads.Create(int)";
     }
 
-    //
     // Unrelated to IStaticOverloads: in C#, a method of a class other than Object
     // hides the methods of every interface.
-    //
     private sealed class ClassOverloads
     {
         public static string Create(long value) => "ClassOverloads.Create(long)";
     }
 
-    //
     // An interface is not a base type of a struct, so its methods are not hidden.
-    //
     private struct StructOverloads : IStaticOverloads
     {
         public static string Create(long value) => "StructOverloads.Create(long)";
     }
 
-    //
     // The base class only makes the hierarchy deeper than that of BaseOverloads.
-    //
     private class UnrelatedBase;
 
     private sealed class UnrelatedOverloads : UnrelatedBase
@@ -1320,17 +1288,13 @@ public class ExpressionParserTest
 
         public string[] Words { get; } = ["a", "b"];
 
-        //
         // The first two overloads are ambiguous for a string array, and the last one is better than both.
-        //
         public static string Later(object[] _) => "object[]";
         public static string Later(IEnumerable<string> _) => "IEnumerable<string>";
         public static string Later(string[] _) => "string[]";
 
-        //
         // The last overload is better than the first one, but neither it nor any other overload is better
         // than all the others, so a call with two strings is ambiguous.
-        //
         public static string NoBest(object a, string b) => "(object, string)";
         public static string NoBest(string a, object b) => "(string, object)";
         public static string NoBest(IComparable a, string b) => "(IComparable, string)";

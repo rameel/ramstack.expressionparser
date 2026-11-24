@@ -65,10 +65,8 @@ partial class ExpressionBuilder
     /// </returns>
     private static MemberExpression CreateMemberAccess(Expression? expression, MemberInfo member)
     {
-        //
         // As in C#, a property is read through its get accessor, so a property whose get accessor
         // is missing or not public cannot be read, even if its set accessor is public.
-        //
         if (member is PropertyInfo property)
         {
             var getter = property.GetMethod;
@@ -151,9 +149,7 @@ partial class ExpressionBuilder
                 isFalseNull ? null : ifFalse.Type);
         }
 
-        //
         // A branch of type void has no value, so the conditional expression would have none either.
-        //
         if (ifTrue.Type == typeof(void) || ifFalse.Type == typeof(void))
             Error.NonApplicableConditionalOperator(ifTrue.Type, ifFalse.Type);
 
@@ -227,10 +223,8 @@ partial class ExpressionBuilder
 
         if (underlyingType is not null)
         {
-            //
             // A non-null value of a is unwrapped and converted to B. Convert a to the nullable form of B instead,
             // which keeps its null value. For a reference type B, the conversion is a boxing conversion.
-            //
             converted = rhsType.IsValueType
                 ? ApplyImplicitConversion(lhs, rhsType.IsNullable() ? rhsType : rhsType.MakeNullableType())
                 : rhsType.IsAssignableFrom(underlyingType)
@@ -290,11 +284,9 @@ partial class ExpressionBuilder
     /// <param name="rhs">The expression of the right operand.</param>
     private static void ApplyNullLiteralConversion(Expr.Binary expr, ref Expression lhs, ref Expression rhs)
     {
-        //
         // The null literal converts to a nullable value type, so opposite an operand of such a type
         // it takes that type, as in 'x == null' or 'x ?? null'. For an enum type E, only E + U and U + E
         // are defined, so in 'x + null' it takes the nullable form of the underlying type U instead.
-        //
         if (lhs.Type.IsNullable() && IsNullLiteral(expr.Right))
             rhs = Expression.Constant(null, GetNullLiteralType(expr.Operator, lhs.Type));
         else if (rhs.Type.IsNullable() && IsNullLiteral(expr.Left))
@@ -334,18 +326,14 @@ partial class ExpressionBuilder
 
         if (lhsType.IsEnum && IsZeroLiteral(expr.Right))
         {
-            //
             // Both E - E and E - U accept 'x - 0'. As in the C# compiler, E - U is selected and returns E
             // if the literal is of the underlying type U; otherwise, E - E is selected and returns U, as in 'x - 0L'.
-            //
             if (expr.Operator.Name != "-" || rhsType != lhsType.GetEnumUnderlyingType())
                 rhs = Expression.Convert(rhs, lhsType);
         }
         else if (rhsType.IsEnum && IsZeroLiteral(expr.Left))
         {
-            //
             // As in the C# compiler, E - E is selected for '0 - x' over U - E, so the result is of the underlying type.
-            //
             lhs = Expression.Convert(lhs, rhsType);
         }
     }
@@ -360,10 +348,8 @@ partial class ExpressionBuilder
     /// </returns>
     private static Expression? ApplyBranchConversion(Expression expression, Type conversionType)
     {
-        //
         // ApplyImplicitConversion does not box values, so handle the boxing conversion here,
         // for example of a number to a branch explicitly converted to object.
-        //
         if (expression.Type.IsValueType
             && !conversionType.IsValueType
             && conversionType.IsAssignableFrom(expression.Type))
@@ -431,10 +417,8 @@ partial class ExpressionBuilder
             list.Add(Convert(arg, parameter.ParameterType));
         }
 
-        //
         // As in C#, a parameter array without arguments gets an empty array,
         // and an omitted optional parameter gets its default value.
-        //
         for (var i = list.Count; i < parameters.Length; i++)
         {
             var parameter = parameters[i];
@@ -449,10 +433,8 @@ partial class ExpressionBuilder
             }
             else
             {
-                //
                 // A required parameter is left without an argument only for a method that does not
                 // accept these arguments, so let Expression.Call report the argument count.
-                //
                 break;
             }
         }
@@ -464,26 +446,20 @@ partial class ExpressionBuilder
             var type = parameter.ParameterType;
             var value = parameter.DefaultValue;
 
-            //
             // A parameter declared with [Optional] and without a default value gets Type.Missing
             // if its type is object, and the default value of its type otherwise, as in C#.
-            //
             if (value is Missing)
                 return type == typeof(object)
                     ? Expression.Constant(value, type)
                     : Expression.Default(type);
 
-            //
             // The default value of a struct, as in 'Guid guid = default', is also stored as null.
-            //
             if (value is null)
                 return type.IsValueType && !type.IsNullable()
                     ? Expression.Default(type)
                     : Expression.Constant(null, type);
 
-            //
             // The default value of a nullable enum is stored as its underlying integer.
-            //
             var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
             if (underlyingType.IsEnum && value.GetType() != underlyingType)
                 value = Enum.ToObject(underlyingType, value);
@@ -530,10 +506,8 @@ partial class ExpressionBuilder
                 ? rhsNonNullableType
                 : null;
 
-        //
         // The type to which the result of an enum operator is converted. It remains null for an enum comparison,
         // whose result is bool, and if neither operand is of an enum type.
-        //
         Type? enumResultType = null;
 
         if (enumType is not null)
@@ -593,10 +567,8 @@ partial class ExpressionBuilder
 
         if (lifted)
         {
-            //
             // Expression lifts a user-defined operator, such as DateTime subtraction, only if both operands
             // are of nullable types, so convert the remaining operand of a non-nullable value type.
-            //
             if (lhs.Type.IsValueType)
                 lhs = ConvertOperand(lhs, lhs.Type.GetNonNullableType(), lifted: true);
 
@@ -613,10 +585,8 @@ partial class ExpressionBuilder
 
     private static Expression ApplyShiftOperator(Identifier op, Func<Expression, Expression, Expression> apply, Expression lhs, Expression rhs)
     {
-        //
         // The predefined shift operators take an int, uint, long, or ulong value and an int count,
         // so an operand of a smaller integral type, including char, is converted to int, as in C#.
-        //
         var lhsType = lhs.Type;
         var rhsType = rhs.Type;
         var lifted = lhsType.IsNullable() || rhsType.IsNullable();
@@ -743,10 +713,8 @@ partial class ExpressionBuilder
             if (x == typeof(long) || y == typeof(long))
                 return typeof(long);
 
-            //
             // Neither operand is of type long here, so IsSignedInteger matches only sbyte, short, or int,
             // as the uint rule requires.
-            //
             if (x == typeof(uint) || y == typeof(uint))
                 return IsSignedInteger(x) || IsSignedInteger(y) ? typeof(long) : typeof(uint);
 

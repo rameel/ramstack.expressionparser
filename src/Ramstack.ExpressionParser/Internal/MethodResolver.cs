@@ -206,12 +206,10 @@ internal static class MethodResolver
 
         currentIndex = RemoveMethodsOfBaseTypes(candidates, parameterArrayTypes, currentIndex);
 
-        //
         // As in C#, the method to invoke must be more specific than every other candidate.
         // Such a method wins each comparison, so the walk below always ends on it. A candidate
         // that ties with the current winner does not stop the walk, since a later candidate
         // can be more specific than both.
-        //
         var min = 0;
         var ambiguous = false;
 
@@ -238,10 +236,8 @@ internal static class MethodResolver
         if (ambiguous)
             return null;
 
-        //
         // The candidates before the winner may not have been compared with it,
         // so check that the winner is also more specific than each of them.
-        //
         for (var i = 0; i < min; i++)
         {
             var result = FindMostSpecificMethod(
@@ -269,10 +265,8 @@ internal static class MethodResolver
     /// </returns>
     private static int RemoveMethodsOfBaseTypes(MethodBase[] candidates, Type?[] parameterArrayTypes, int count)
     {
-        //
         // As in C#, only the methods of the most derived types remain, even if a removed method
         // matches the arguments better.
-        //
         var declaringTypes = new Type[count];
         for (var i = 0; i < count; i++)
             declaringTypes[i] = GetIntroducingType(candidates[i]);
@@ -301,10 +295,8 @@ internal static class MethodResolver
 
         static bool HidesMethodsOf(Type other, Type type)
         {
-            //
             // As in C#, a method of a class other than Object also removes the methods declared
             // in interfaces, although an interface is not a base type of a class.
-            //
             return type.IsBaseTypeOf(other)
                 || type.IsInterface && other.IsClass && other != typeof(object);
         }
@@ -324,10 +316,8 @@ internal static class MethodResolver
         {
             var definition = mi.GetBaseDefinition();
 
-            //
             // A covariant return override occupies a new slot, so GetBaseDefinition returns
             // the override itself. The compiler marks such an override with PreserveBaseOverridesAttribute.
-            //
             if (definition.IsDefined(typeof(PreserveBaseOverridesAttribute), inherit: false)
                 && FindOverriddenMethod(definition) is { } overridden)
                 return GetIntroducingType(overridden);
@@ -340,9 +330,7 @@ internal static class MethodResolver
 
         static MethodInfo? FindOverriddenMethod(MethodInfo method)
         {
-            //
             // An override overrides the nearest virtual method with the same parameter types.
-            //
             var parameters = method.GetParameters();
 
             for (var type = method.DeclaringType!.BaseType; type is not null; type = type.BaseType)
@@ -417,17 +405,13 @@ internal static class MethodResolver
                 var usesDefaults1 = UsesDefaultArguments(p1, paramArrayType1, types.Length);
                 var usesDefaults2 = UsesDefaultArguments(p2, paramArrayType2, types.Length);
 
-                //
                 // As in C#, a method whose parameters all get arguments is better than a method
                 // that needs default arguments, and methods that both need them are ambiguous.
-                //
                 if (usesDefaults1 != usesDefaults2)
                     return usesDefaults1 ? 2 : 1;
 
-                //
                 // Methods without default arguments differ in length only in their expanded form,
                 // and the one with more declared parameters is better.
-                //
                 if (!usesDefaults1)
                 {
                     if (p1.Length > p2.Length)
@@ -445,9 +429,7 @@ internal static class MethodResolver
 
         static bool UsesDefaultArguments(ParameterInfo[] parameters, Type? paramArrayType, int argumentCount)
         {
-            //
             // In the expanded form, the parameter array takes the remaining arguments, possibly none.
-            //
             var count = paramArrayType is not null
                 ? parameters.Length - 1
                 : parameters.Length;
@@ -532,11 +514,9 @@ internal static class MethodResolver
         if (result != 0)
             return result;
 
-        //
         // Reflection lists a covariant return override along with the method it overrides.
         // Both belong to the type that introduced the method, so neither removes the other,
         // and the override is chosen for its more specific return type.
-        //
         if (HasSameParameterTypes(p1, p2))
         {
             Debug.Assert(m1.DeclaringType is not null);
