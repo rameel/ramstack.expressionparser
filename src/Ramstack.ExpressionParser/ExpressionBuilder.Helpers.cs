@@ -111,6 +111,23 @@ partial class ExpressionBuilder
     }
 
     /// <summary>
+    /// Applies an implicit conversion of the specified expression to <see cref="bool" />, as required for
+    /// the operands of <c>&amp;&amp;</c> and <c>||</c> and the condition of <c>?:</c>.
+    /// </summary>
+    /// <param name="expression">The expression to convert.</param>
+    /// <returns>
+    /// The converted expression.
+    /// </returns>
+    private static Expression ApplyBooleanConversion(Expression expression)
+    {
+        var converted = ApplyImplicitConversion(expression, typeof(bool));
+        if (converted is null)
+            Error.MissingImplicitConversion(expression.Type, typeof(bool));
+
+        return converted;
+    }
+
+    /// <summary>
     /// Converts the branches of a conditional expression to their common type.
     /// </summary>
     /// <param name="expr">The conditional expression.</param>
