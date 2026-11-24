@@ -79,7 +79,7 @@ partial class Expr
         /// </returns>
         public override string ToString() => UnaryType switch
         {
-            UnaryType.Convert => $"({Operand} :> {Operator})",
+            UnaryType.Convert => $"({Operand} :> {Operator.ToSourceString()})",
             _ => $"{Operator}({Operand})"
         };
     }

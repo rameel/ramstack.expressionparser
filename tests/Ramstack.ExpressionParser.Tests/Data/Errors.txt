@@ -28,6 +28,18 @@ int.true:>text
 double.false:>text
 (1:8) Expected identifier
 
+@true
+Cannot resolve symbol 'true'.
+
+"abc".@null
+Cannot resolve symbol 'null'.
+
+"abc".@
+(1:7) Expected identifier
+
+@ true
+(1:1) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
 Math.int:>text
 Cannot resolve symbol 'int'.
 

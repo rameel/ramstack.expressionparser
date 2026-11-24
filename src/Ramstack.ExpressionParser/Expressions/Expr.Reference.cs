@@ -26,6 +26,6 @@ partial class Expr
 
         /// <inheritdoc />
         public override string ToString() =>
-            Value.ToString();
+            Value.ToSourceString();
     }
 }

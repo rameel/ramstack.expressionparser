@@ -862,6 +862,25 @@ public class ExpressionParserTest
         Assert.That(source[result.Length..], Is.EqualTo(rest));
     }
 
+    [TestCase("@true", 1)]
+    [TestCase("@false + @null", 5)]
+    [TestCase("Self.@true", 1)]
+    [TestCase("Self.@null", 3)]
+    [TestCase("@Value", 4)]
+    [TestCase("Self.@Value", 4)]
+    public void Evaluate_VerbatimIdentifier_ResolvesMemberByName(string expression, int expected) =>
+        Assert.That(ExpressionParser.Evaluate(expression, new KeywordContext()), Is.EqualTo(expected));
+
+    [TestCase("@true", "@true")]
+    [TestCase("x.@null", "x.@null")]
+    [TestCase("@false(1)[2]", "@false(1)[2]")]
+    [TestCase("x :> @null", "(x :> @null)")]
+    [TestCase("@trueValue", "trueValue")]
+    [TestCase("@x.@y", "x.y")]
+    [TestCase("1 :> @long", "(1 :> long)")]
+    public void ToString_VerbatimIdentifier_PrefixesOnlyKeywords(string source, string expected) =>
+        Assert.That(ExpressionParser.Parser.Parse(source).Value?.ToString(), Is.EqualTo(expected));
+
     [Test]
     public void MaxDepthTest()
     {
@@ -1473,5 +1492,14 @@ public class ExpressionParserTest
         public int[,,] Cube { get; } = new int[2, 2, 2];
         public int[][] Jagged { get; } = [[1], [1, 2, 3]];
         public Array Untyped { get; } = new[] { "a", "b" };
+    }
+
+    public class KeywordContext
+    {
+        public int @true { get; } = 1;
+        public int @false { get; } = 2;
+        public int @null { get; } = 3;
+        public int Value { get; } = 4;
+        public KeywordContext Self => this;
     }
 }

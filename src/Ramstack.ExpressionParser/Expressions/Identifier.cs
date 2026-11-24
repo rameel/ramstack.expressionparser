@@ -22,4 +22,17 @@ public sealed class Identifier(string name)
     /// <inheritdoc />
     public override string ToString() =>
         Name;
+
+    /// <summary>
+    /// Returns the name as it is written in an expression.
+    /// </summary>
+    /// <returns>
+    /// The name, prefixed with <c>@</c> if it is a keyword, such as <c>true</c>,
+    /// so that the parser reads it back as an identifier.
+    /// </returns>
+    /// <remarks>
+    /// The keywords are those of the <c>keyword</c> rule in <see cref="ExpressionParser" />.
+    /// </remarks>
+    internal string ToSourceString() =>
+        Name is "true" or "false" or "null" ? $"@{Name}" : Name;
 }
