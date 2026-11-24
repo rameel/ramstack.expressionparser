@@ -55,11 +55,9 @@ partial class ExpressionParser
                 identifier_body.Many()
                 ).Map(m => new Identifier(m.ToString()));
 
-        //
         // As in C#, the '@' prefix makes a verbatim identifier, which can be a keyword, as in 'x.@null'.
         // The prefix is not part of the name. The keyword check does not match the prefix, so a verbatim
         // identifier passes Not(keyword) wherever an identifier is expected.
-        //
         var identifier =
             L('@').Optional()
                 .Then(identifier_name)
@@ -134,10 +132,8 @@ partial class ExpressionParser
                 .Separated(
                     Seq(L(','), S)).As("expression_list");
 
-        //
         // Member access, calls, and indexers share one precedence level, so each of them
         // is parsed as a postfix operator that wraps the expression to its left.
-        //
         var call =
             expression_list
                 .Between(
@@ -152,12 +148,10 @@ partial class ExpressionParser
                     Seq(L(']'), S))
                 .Do(Func<Expr, Expr> (parameters) => expr => new Expr.Indexer(expr, parameters));
 
-        //
         // Not(keyword) reports no expected token when it fails, so the member name is labeled
         // to report "Expected identifier" for a keyword after the dot. Unlike Fail, a labeled parser
         // fails without stopping the parse, so Subparser still stops before a dot that an enclosing
         // grammar uses, as in 'a..b'.
-        //
         var member_access =
             Not(keyword).Then(identifier).As("identifier")
                 .Between(
@@ -181,10 +175,8 @@ partial class ExpressionParser
                 return expr;
             });
 
-        //
         // The conversion operator is ':>' rather than ':', which would conflict with the conditional
         // operator: in 'flag ? 0 : count', ': count' would be taken for a conversion to the type 'count'.
-        //
         var cast_expression =
             Seq(
                 postfix_expression,

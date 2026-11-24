@@ -124,10 +124,8 @@ internal static class TypeUtils
     /// </remarks>
     public static bool CanConvertPrimitive(Type source, Type target)
     {
-        //
         // Type.GetTypeCode returns the code of the underlying type for an enum,
         // so without this check a number would convert to any enum and back.
-        //
         if (source.IsEnum || target.IsEnum)
             return false;
 

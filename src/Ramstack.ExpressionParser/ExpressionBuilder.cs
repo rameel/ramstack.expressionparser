@@ -138,10 +138,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                         }
                         else
                         {
-                            //
                             // The only argument is not an array of operands created for the expanded form,
                             // as in string.Concat(value) or string.Concat(array), so the call itself is the operand.
-                            //
                             arguments.Add(e);
                             argumentTypes.Add(e.Type);
                         }
@@ -223,10 +221,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             if (method is null)
                 Error.AmbiguousMatch(indexers);
 
-            //
             // As in C#, an indexer whose get accessor is not public takes part in overload resolution,
             // but cannot be read.
-            //
             if (!method.IsPublic)
                 Error.InaccessibleGetAccessor(indexers[methods.IndexOf(method)]);
 
@@ -260,10 +256,8 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
             if (instance is not null)
             {
-                //
                 // Without a method, the instance is a delegate to invoke. A method can also be called
                 // on a delegate, as in 'func.Invoke(1)' or 'func.ToString()'.
-                //
                 Debug.Assert(method is not null || typeof(Delegate).IsAssignableFrom(instance.Type));
 
                 if (method is null)
@@ -296,9 +290,7 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
                 if (!typeof(Delegate).IsAssignableFrom(memberInfo.GetMemberType()))
                     Error.NonInvocableMember(member);
 
-                //
                 // A member accessed through a type is static, so it is accessed without an instance.
-                //
                 return Invoke(CreateMemberAccess(instance, memberInfo), null);
             }
 
@@ -357,19 +349,15 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
     {
         var operand = Visit(expr.Operand);
 
-        //
         // For an operand of a nullable value type, the operators below are lifted:
         // they apply to the underlying type and return the nullable form of their result type.
-        //
         var operandType = operand.Type;
         var nonNullableType = operandType.GetNonNullableType();
         var lifted = operandType.IsNullable();
 
-        //
         // C# does not define the unary '-' and '+' operators for an enum, and '~' applies to its underlying type.
         // A conversion takes the enum itself, so that converting it to object boxes the enum
         // rather than its underlying value.
-        //
         if (nonNullableType.IsEnum && expr.UnaryType != UnaryType.Convert)
         {
             if (expr.UnaryType is UnaryType.Negate or UnaryType.UnaryPlus)
@@ -380,21 +368,17 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
 
         switch (expr.UnaryType)
         {
-            //
             // As in C#, the literals 2147483648 and 9223372036854775808 directly after a unary minus are the constants
             // int.MinValue and long.MinValue. Parentheses or the U suffix keep their uint and ulong types.
             // Other suffixes need no check: 2147483648 with L or UL is not a uint, and C# allows L for 9223372036854775808.
-            //
             case UnaryType.Negate when expr.Operand is Expr.Literal { Value: 0x80000000u, HasUnsignedSuffix: false }:
                 return Expression.Constant(int.MinValue);
 
             case UnaryType.Negate when expr.Operand is Expr.Literal { Value: 0x8000000000000000ul, HasUnsignedSuffix: false }:
                 return Expression.Constant(long.MinValue);
 
-            //
             // C# has no negation operator for uint, so the operand is converted to long
             // and then negated, which keeps the sign of the result.
-            //
             case UnaryType.Negate when operand.Type.GetNonNullableType() == typeof(uint):
                 operand = ConvertOperand(operand, typeof(long), lifted);
                 break;
@@ -409,12 +393,10 @@ public partial class ExpressionBuilder(Binder binder) : ExprVisitor<Expression>
             switch (expr.UnaryType)
             {
                 case UnaryType.Not:
-                    //
                     // Expression.Not performs a bitwise complement on integers and falls back to op_OnesComplement
                     // when a type does not define op_LogicalNot, so '!' would silently work as '~'.
                     // Allow only the logical negation, as C# does. For a nullable operand,
                     // Expression.Not lifts the negation of the underlying type.
-                    //
                     if (nonNullableType == typeof(bool))
                         return Expression.Not(operand);
 

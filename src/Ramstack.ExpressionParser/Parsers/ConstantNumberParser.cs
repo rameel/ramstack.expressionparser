@@ -93,10 +93,8 @@ internal sealed class ConstantNumberParser : Parser<Expr>
             if (d > 9)
                 break;
 
-            //
             // A number too large for ulong is still read to the end, since its digits
             // can be the integer part of a real literal, such as 100000000000000000000.0.
-            //
             if (r > ulong.MaxValue / 10
                 || (r == ulong.MaxValue / 10 && d > ulong.MaxValue % 10))
                 overflow = true;
@@ -131,9 +129,7 @@ internal sealed class ConstantNumberParser : Parser<Expr>
                     break;
                 }
 
-                //
                 // Check for overflow
-                //
                 if (r > ulong.MaxValue / 16)
                     Error_IntegralConstantTooLarge();
 
@@ -169,9 +165,7 @@ internal sealed class ConstantNumberParser : Parser<Expr>
                     break;
                 }
 
-                //
                 // Check for overflow
-                //
                 if (r > ulong.MaxValue >> 1)
                     Error_IntegralConstantTooLarge();
 
@@ -189,9 +183,7 @@ internal sealed class ConstantNumberParser : Parser<Expr>
 
     private static int TryParseReal(ReadOnlySpan<char> s, int p, out object? value)
     {
-        //
         // Float number pattern: \d+(\.\d+)?([Ee][-+]?\d+)?
-        //
 
         var i = p;
 
@@ -232,9 +224,7 @@ internal sealed class ConstantNumberParser : Parser<Expr>
 
         var suffix = (uint)i < (uint)s.Length ? s[i] & ~0x20 : '\0';
 
-        //
         // As in C#, digits followed by a real type suffix, such as 1d, also form a real literal.
-        //
         if (i != p || suffix is 'F' or 'M' or 'D')
         {
             if ((uint)i <= (uint)s.Length)
@@ -270,9 +260,7 @@ internal sealed class ConstantNumberParser : Parser<Expr>
         static bool IsAsciiDigit(char c) =>
             (uint)c - '0' <= 9;
 
-        //
         // As in C#, a value too large for the type is an error, and a value too small for it becomes zero.
-        //
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static object ParseSingle(ReadOnlySpan<char> s)
@@ -313,10 +301,8 @@ internal sealed class ConstantNumberParser : Parser<Expr>
         {
             var c0 = s[0] & ~0x20;
 
-            //
             // As in C#, the real type suffixes D, F, and M follow only decimal digits, which TryParseReal reads.
             // After a hexadecimal or binary literal, such a letter is not part of the literal.
-            //
             if (c0 is 'L' or 'U')
             {
                 var c1 = s.Length > 1 ? s[1] & ~0x20 : '\0';
@@ -371,10 +357,8 @@ internal sealed class ConstantNumberParser : Parser<Expr>
         //   In all other situations, such an integer-literal is of type ulong.
         //
 
-        //
         // If the literal has no suffix, it has the first of these types
         // in which its value can be represented: int, uint, long, ulong.
-        //
         if (!hasL && !hasU)
         {
             switch (number)
@@ -399,10 +383,8 @@ internal sealed class ConstantNumberParser : Parser<Expr>
             return 0;
         }
 
-        //
         // If the literal is suffixed by U or u, it has the first of these types
         // in which its value can be represented: uint, ulong.
-        //
         if (hasU && !hasL)
         {
             if (number <= uint.MaxValue)
@@ -413,10 +395,8 @@ internal sealed class ConstantNumberParser : Parser<Expr>
             return 1;
         }
 
-        //
         // If the literal is suffixed by L or l, it has the first of these types
         // in which its value can be represented: long, ulong.
-        //
         if (hasL && !hasU)
         {
             switch (number)
@@ -433,9 +413,7 @@ internal sealed class ConstantNumberParser : Parser<Expr>
             return 1;
         }
 
-        //
         // If the literal is suffixed by UL, Ul, uL, ul, LU, Lu, lU, or lu, it is of type ulong.
-        //
         value = number;
         return 2;
     }

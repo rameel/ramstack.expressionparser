@@ -161,11 +161,9 @@ public class DefaultBinder : Binder
                 && m.MemberType is MemberTypes.Field or MemberTypes.Property)
             .ToArray();
 
-        //
         // As in C#, a field or property of a derived type hides matching members of its
         // base types. For static imports, keep matches from each imported type so that
         // a name found in two imports is ambiguous, as with using static in C#.
-        //
         if (type is not null && candidates.Length > 1)
             candidates = candidates
                 .Where(m => !candidates.Any(c => m.DeclaringType!.IsBaseTypeOf(c.DeclaringType!)))

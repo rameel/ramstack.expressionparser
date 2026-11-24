@@ -21,7 +21,5 @@ internal sealed class StackGuardParser<T>(Parser<T> parser) : Parser<T>
         return parser.TryParse(ref context, out value);
     }
 
-    //
     // NOTE: The default void wrapper calls TryParse, so the check also runs when the value is discarded.
-    //
 }
