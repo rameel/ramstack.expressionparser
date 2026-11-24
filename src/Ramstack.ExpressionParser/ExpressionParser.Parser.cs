@@ -124,53 +124,45 @@ partial class ExpressionParser
                 .Separated(
                     Seq(L(','), S)).As("expression_list");
 
-        var call_expression =
+        //
+        // Member access, calls, and indexers share one precedence level, so each of them
+        // is parsed as a postfix operator that wraps the expression to its left.
+        //
+        var call =
             expression_list
                 .Between(
                     Seq(L('('), S),
-                    Seq(L(')'), S)).Do(list => (list, indexer: false));
+                    Seq(L(')'), S))
+                .Do(Func<Expr, Expr> (parameters) => expr => new Expr.Call(expr, parameters));
 
-        var indexer_expression =
+        var indexer =
             expression_list
                 .Between(
                     Seq(L('['), S),
-                    Seq(L(']'), S)).Do(list => (list, indexer: true));
+                    Seq(L(']'), S))
+                .Do(Func<Expr, Expr> (parameters) => expr => new Expr.Indexer(expr, parameters));
 
-        var call_or_indexer_expression =
+        var member_access =
+            identifier
+                .Between(
+                    Seq(L('.'), S, Not(keyword)),
+                    S)
+                .Do(Func<Expr, Expr> (name) => expr => new Expr.MemberAccess(expr, new Expr.Reference(name)));
+
+        var postfix_expression =
             Seq(
                 primary_expression,
                 Choice(
-                    call_expression,
-                    indexer_expression
+                    call,
+                    indexer,
+                    member_access
                 ).Many()
-            ).Do((expr, list) =>
+            ).Do((expr, operators) =>
             {
-                foreach (var (parameters, indexer) in list)
-                    expr = indexer
-                        ? new Expr.Indexer(expr, parameters)
-                        : new Expr.Call(expr, parameters);
+                foreach (var apply in operators)
+                    expr = apply(expr);
 
-                //
-                // HijackMemberExpression processes this chain recursively during parsing,
-                // so check the depth before the chain reaches it.
-                //
-                return EnsureDepth(expr);
-            });
-
-        var member_expression =
-            call_or_indexer_expression.Fold(Seq(L('.'), S, Not(keyword)), (lhs, rhs, _) =>
-            {
-                return HijackMemberExpression(lhs, rhs);
-
-                static Expr HijackMemberExpression(Expr result, Expr value)
-                {
-                    return value switch
-                    {
-                        Expr.Call call => new Expr.Call(HijackMemberExpression(result, call.Expression), call.Parameters),
-                        Expr.Indexer indexer => new Expr.Indexer(HijackMemberExpression(result, indexer.Expression), indexer.Parameters),
-                        _ => new Expr.MemberAccess(result, value)
-                    };
-                }
+                return expr;
             });
 
         //
@@ -179,7 +171,7 @@ partial class ExpressionParser
         //
         var cast_expression =
             Seq(
-                member_expression,
+                postfix_expression,
                 identifier.Between(
                     Seq(L(":>"), S),
                     S).Many()
