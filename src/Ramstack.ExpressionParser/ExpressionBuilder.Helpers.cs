@@ -240,6 +240,50 @@ partial class ExpressionBuilder
     }
 
     /// <summary>
+    /// Creates a <c>string.Concat</c> call for the <c>+</c> operator when at least one of its operands is a string.
+    /// </summary>
+    /// <param name="lhs">The expression of the left operand.</param>
+    /// <param name="rhs">The expression of the right operand.</param>
+    /// <returns>
+    /// The expression that calls <c>string.Concat</c>.
+    /// </returns>
+    /// <remarks>
+    /// A <c>string.Concat</c> call among the operands, such as the one built for <c>a + b</c>, is replaced with its
+    /// arguments, so <c>a + b + c</c> becomes a single call. For a call in the expanded form, these are the elements
+    /// of its array; a call with a single argument of another kind, such as <c>string.Concat(array)</c>, stays one
+    /// operand. If any operand is not a string, all operands are passed as <see cref="object" />.
+    /// </remarks>
+    private static MethodCallExpression ApplyStringConcatenation(Expression lhs, Expression rhs)
+    {
+        List<Expression> arguments = [.. GetConcatOperands(lhs), .. GetConcatOperands(rhs)];
+
+        var type = arguments.TrueForAll(a => a.Type == typeof(string)) ? typeof(string) : typeof(object);
+        var types = new Type[arguments.Count];
+        Array.Fill(types, type);
+
+        var method = (MethodInfo?)MethodResolver.ResolveMethod(s_concatMethods, types);
+        Debug.Assert(method is not null);
+
+        return Expression.Call(method, CreateInjectingArguments(method, arguments));
+
+        static IReadOnlyList<Expression> GetConcatOperands(Expression expression)
+        {
+            if (expression is MethodCallExpression call
+                && call.Method.Name == nameof(string.Concat)
+                && call.Method.DeclaringType == typeof(string))
+            {
+                if (call.Arguments.Count != 1)
+                    return call.Arguments;
+
+                if (call.Arguments[0] is NewArrayExpression { NodeType: ExpressionType.NewArrayInit } array)
+                    return array.Expressions;
+            }
+
+            return [expression];
+        }
+    }
+
+    /// <summary>
     /// Determines whether the specified expression is the null literal, possibly in parentheses.
     /// </summary>
     /// <param name="expr">The expression to test.</param>
