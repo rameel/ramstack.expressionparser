@@ -59,7 +59,7 @@ Non-invocable member 'maxvalue' cannot be used like a method.
 (1:11) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or ')'
 
 1 + 2 * 3(
-(1:11) Expected ')'
+(1:11) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, '(', or ')'
 
 1 + 2 * 3(2)
 Method name expected (expression: 3).
@@ -68,7 +68,7 @@ Method name expected (expression: 3).
 Cannot apply indexing with [] to an expression of type 'System.Int32'.
 
 1 + 2 * 3[
-(1:11) Expected expression
+(1:11) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
 
 1 + 2 * 3]
 (1:10) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
@@ -101,16 +101,37 @@ Cannot apply indexing with [] to an expression of type 'System.Int32'.
 (1:2) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', or end of input
 
 "test"[]
-(1:8) Expected expression
+(1:8) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
 
 "test"[ ]
-(1:9) Expected expression
+(1:9) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
 
 "test".Split(',')[]
-(1:19) Expected expression
+(1:19) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
 
 "test"["a"]
 Ambiguous match found:\n    Char Chars [Int32] (in System.String)
+
+"test".ToString(1,)
+(1:19) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+Math.Max(1, (2 + ))
+(1:18) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+"test"[0,]
+(1:10) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+"test"[(]
+(1:9) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+"test"[1 +]
+(1:11) Expected [!+\-~], double-quoted string, quoted-character, 'true', 'false', 'null', identifier, or '('
+
+"test"[0
+(1:9) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', ',', or ']'
+
+Math.Max(1, 2
+(1:14) Expected '(', '[', '.', ':>', [%*/], [+-], '<<', '>>', '>>>', '<', '>', '<=', '>=', '==', '!=', '&', '^', '|', '&&', '||', '??', '?', ',', or ')'
 
 StringSplitOptions.None | StringComparison.Ordinal
 Operator '|' cannot be applied to operands of type 'System.StringSplitOptions' and 'System.StringComparison'.
